@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id 'net.minecraftforge.gradle' version '6.0.36'
+}
+
+group = 'io.github.python121212.astrodock'
+version = mod_version
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+    copyIdeResources = true
+    runs {
+        client {
+            workingDirectory project.file('run')
+            mods {
+                astrodock { source sourceSets.main }
+            }
+        }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+}
+
+tasks.named('processResources') {
+    def metadata = [mod_version: mod_version, minecraft_version: minecraft_version, forge_version: forge_version]
+    inputs.properties(metadata)
+    filteringCharset = 'UTF-8'
+    filesMatching('META-INF/mods.toml') { expand(metadata) }
+}
+
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.named('jar') { finalizedBy 'reobfJar' }
