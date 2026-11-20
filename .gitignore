@@ -1,0 +1,27 @@
+# Gradle output / caches
+build/
+run/
+out/
+.gradle/
+**/build/
+**/run/
+**/.gradle/
+
+# IDE
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python venv (jdk4py などの検証用環境) — リポジトリには含めない
+.venv/
+venv/
+
+# ローカルキャッシュ / ログ
+*.log
