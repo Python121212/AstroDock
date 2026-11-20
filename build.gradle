@@ -11,6 +11,15 @@ minecraft {
     mappings channel: 'official', version: minecraft_version
     copyIdeResources = true
     runs {
+        gameTestServer {
+            workingDirectory project.file('build/gametest')
+            mods {
+                astrodock {
+                    source sourceSets.main
+                    source sourceSets.test
+                }
+            }
+        }
         client {
             workingDirectory project.file('run')
             mods {
