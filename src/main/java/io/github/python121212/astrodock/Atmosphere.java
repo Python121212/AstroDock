@@ -15,18 +15,16 @@ public final class Atmosphere {
         }
     }
 
+    private static final Band[] BANDS = Band.values();
+
     public static Band active(double y) {
-        if (y >= 3500) return Band.EXOSPHERE;
-        if (y >= 2000) return Band.THERMOSPHERE;
-        if (y >= 800) return Band.STRATOSPHERE;
-        return y >= 320 ? Band.LOWER : null;
+        for (int i = BANDS.length - 1; i >= 0; i--) if (y >= BANDS[i].startsAt) return BANDS[i];
+        return null;
     }
 
     public static Band upcoming(double y) {
-        if (y >= 3200 && y < 3500) return Band.EXOSPHERE;
-        if (y >= 1800 && y < 2000) return Band.THERMOSPHERE;
-        if (y >= 700 && y < 800) return Band.STRATOSPHERE;
-        return y >= 200 && y < 320 ? Band.LOWER : null;
+        for (Band band : BANDS) if (y < band.startsAt) return y >= band.prepareAt ? band : null;
+        return null;
     }
 
     public static double ramp(double y, double start, double end) {

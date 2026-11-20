@@ -33,3 +33,10 @@ tasks.named('processResources') {
 
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 tasks.named('jar') { finalizedBy 'reobfJar' }
+
+tasks.register('checkAtmosphere', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'io.github.python121212.astrodock.AtmosphereTest'
+}
+tasks.named('check') { dependsOn 'checkAtmosphere' }

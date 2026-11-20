@@ -1,6 +1,8 @@
 package io.github.python121212.astrodock;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.WeakHashMap;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.level.*;
 import net.minecraft.world.entity.ai.attributes.*;
@@ -15,6 +17,9 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = "astrodock")
 public final class FlightEvents {
     private static final UUID GRAVITY = UUID.fromString("0645b716-b2ac-438b-ba2d-b7eb28ca4661");
+
+    private record Sample(Level level, Vec3 position, int tick) {}
+    private static final Map<ServerPlayer, Sample> approach = new WeakHashMap<>();
 
     @SubscribeEvent public static void tick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
@@ -66,10 +71,22 @@ public final class FlightEvents {
 
     private static boolean crossBoundary(ServerPlayer p, double altitude) {
         boolean orbit = p.level().dimension() == AstroDock.ORBIT;
-        if (orbit == (altitude >= Atmosphere.SPACE)) return false;
+        if (orbit == (altitude >= Atmosphere.SPACE)) {
+            if (Math.abs(altitude - Atmosphere.SPACE) < 32) {
+                approach.put(p, new Sample(p.level(), p.position(), p.tickCount));
+            } else if (!approach.isEmpty()) approach.remove(p);
+            return false;
+        }
         ServerLevel dest = p.serverLevel().getServer().getLevel(orbit ? Level.OVERWORLD : AstroDock.ORBIT);
         if (dest == null) return false;
         Vec3 velocity = p.getDeltaMovement();
+        // サーバー上のプレイヤー速度はクライアントの飛行入力を含まないため、
+        // 境界直前に受信した移動量を優先する。コマンドでの長距離転移は除外。
+        Sample last = approach.remove(p);
+        if (last != null && last.level == p.level() && p.tickCount == last.tick + 1) {
+            Vec3 delta = p.position().subtract(last.position);
+            if (delta.lengthSqr() <= 3.9 * 3.9) velocity = delta;
+        }
         p.teleportTo(dest, p.getX(), orbit ? altitude : altitude - Atmosphere.SPACE, p.getZ(), p.getYRot(), p.getXRot());
         p.setDeltaMovement(velocity);
         p.connection.send(new ClientboundSetEntityMotionPacket(p));
