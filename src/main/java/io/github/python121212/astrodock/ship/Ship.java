@@ -1,6 +1,9 @@
 package io.github.python121212.astrodock.ship;
 
 import java.util.*;
+import net.minecraft.network.syncher.*;
+import org.joml.Matrix3f;
+import org.joml.Quaternionf;
 import io.github.python121212.astrodock.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.*;
@@ -25,19 +28,32 @@ import net.minecraft.core.Direction;
 public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     private Hull hull;
     private UUID owner;
-    private double spin;
+    private static final EntityDataAccessor<Quaternionf> ROTATION = SynchedEntityData.defineId(Ship.class, EntityDataSerializers.QUATERNION);
+    final RigidBody body = new RigidBody();
+    private final Quaternionf previous = new Quaternionf();
+    private final Matrix3f basis = new Matrix3f();
+    private AABB localBounds;
     private int steps;
     private double tx,ty,tz; private float targetYaw;
     public Ship(EntityType<? extends Ship> type,Level level) { super(type,level); blocksBuilding=true; }
     public Hull hull() { return hull; }
-    void configure(Hull h,UUID owner) { this.hull=h;this.owner=owner;setBoundingBox(makeBoundingBox()); }
-    @Override protected AABB makeBoundingBox() {
-        if (hull==null) return super.makeBoundingBox();
-        double a=getYRot()*Mth.DEG_TO_RAD,c=Math.abs(Math.cos(a)),s=Math.abs(Math.sin(a));
-        double x=c*hull.radiusX+s*hull.radiusZ,z=c*hull.radiusZ+s*hull.radiusX;
-        return new AABB(getX()-x,getY(),getZ()-z,getX()+x,getY()+hull.height,getZ()+z);
+    void configure(Hull h,UUID owner) { this.hull=h;this.owner=owner;refreshBounds(); }
+    public Quaternionf renderRotation(float partial) { return previous.nlerp(body.attitude,partial,new Quaternionf()); }
+    // |R| × 半径から保守的な AABB を計算。並進だけなら再計算しない。
+    private void refreshBounds() {
+        basis.set(body.attitude);
+        double x=hull.radiusX, y=hull.height*0.5, z=hull.radiusZ, offset=y-hull.pivotHeight;
+        double dx=Math.abs(basis.m00)*x+Math.abs(basis.m10)*y+Math.abs(basis.m20)*z;
+        double dy=Math.abs(basis.m01)*x+Math.abs(basis.m11)*y+Math.abs(basis.m21)*z;
+        double dz=Math.abs(basis.m02)*x+Math.abs(basis.m12)*y+Math.abs(basis.m22)*z;
+        double cx=basis.m10*offset, cy=hull.pivotHeight+basis.m11*offset, cz=basis.m12*offset;
+        localBounds=new AABB(cx-dx,cy-dy,cz-dz,cx+dx,cy+dy,cz+dz);
+        setBoundingBox(makeBoundingBox());
     }
-    @Override public double getPassengersRidingOffset() { return hull==null?1:hull.height; }
+    @Override protected AABB makeBoundingBox() {
+        return localBounds==null ? super.makeBoundingBox() : localBounds.move(getX(),getY(),getZ());
+    }
+    @Override public double getPassengersRidingOffset() { return localBounds==null?1:localBounds.maxY; }
     @Override public boolean isPickable() { return !isRemoved(); }
     @Override public InteractionResult interact(Player p,InteractionHand hand) {
         if (level().isClientSide) return InteractionResult.SUCCESS;
@@ -51,34 +67,50 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     }
     @Override public void tick() {
         super.tick(); if (hull==null) { if (!level().isClientSide) discard(); return; }
+        previous.set(body.attitude);
         if(level().isClientSide) {
+            body.attitude.set(entityData.get(ROTATION));
+            if (!previous.equals(body.attitude)) refreshBounds();
             if(steps>0) {setYRot(getYRot()+Mth.wrapDegrees(targetYaw-getYRot())/steps);setPos(getX()+(tx-getX())/steps,getY()+(ty-getY())/steps,getZ()+(tz-getZ())/steps);steps--;}
             return;
         }
         ServerPlayer pilot=getFirstPassenger() instanceof ServerPlayer rider?rider:null;
         double altitude=AstroDock.altitude(level(),getY());
-        ShipMotion motion=new ShipMotion(getDeltaMovement(),spin).step(hull,altitude,getYRot(),pilot==null?0:pilot.zza,
-                pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD,pilot==null?0:-pilot.xxa);
-        spin=motion.spin(); float old=getYRot(); setYRot((float)(old+spin));
-        if (Math.abs(spin)>1e-5 && !level().noCollision(this,makeBoundingBox().deflate(0.001))) {setYRot(old);spin=0;}
-        setBoundingBox(makeBoundingBox()); Vec3 before=position();move(MoverType.SELF,motion.velocity());
+        // 接地・無人・静止中は10 tickごとの支持面確認だけにする。
+        if (pilot==null && onGround() && getDeltaMovement().lengthSqr()==0 && body.momentum.lengthSquared()==0
+                && tickCount%10!=0 && (level().dimension()==AstroDock.ORBIT)==(altitude>=Atmosphere.SPACE)) return;
+        boolean roll=pilot!=null && pilot.getOffhandItem().is(ShipParts.WRENCH.get());
+        float lateral=pilot==null?0:pilot.xxa;
+        Vec3 velocity=body.step(hull,getDeltaMovement(),altitude,pilot==null?0:pilot.zza,
+                pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, roll?0:lateral, roll?lateral:0);
+        if (!previous.equals(body.attitude)) {
+            refreshBounds();
+            if (!level().noCollision(this,getBoundingBox().deflate(0.001))) {
+                body.attitude.set(previous);body.momentum.zero();refreshBounds();
+            } else {
+                setYRot(body.heading(getYRot()));
+                entityData.set(ROTATION,new Quaternionf(body.attitude));
+            }
+        }
+        Vec3 before=position();move(MoverType.SELF,velocity);
         setDeltaMovement(position().subtract(before));
-        boolean orbit=level().dimension()==AstroDock.ORBIT;
-        if (orbit!=(AstroDock.altitude(level(),getY())>=Atmosphere.SPACE)) transfer((ServerLevel)level(),orbit,pilot);
+        crossBoundary((ServerLevel)level(),pilot);
     }
-    private void transfer(ServerLevel from,boolean leavingOrbit,ServerPlayer pilot) {
+    Ship crossBoundary(ServerLevel from, ServerPlayer pilot) {
+        boolean leavingOrbit=from.dimension()==AstroDock.ORBIT;
+        if (leavingOrbit==(AstroDock.altitude(from,getY())>=Atmosphere.SPACE)) return null;
         ServerLevel to=from.getServer().getLevel(leavingOrbit?Level.OVERWORLD:AstroDock.ORBIT);
-        if (to==null) return;
-        Ship next=new Ship(ShipParts.SHIP.get(),to);next.configure(hull,owner);next.spin=spin;
+        if (to==null) return null;
+        Ship next=new Ship(ShipParts.SHIP.get(),to);next.body.copyFrom(body);next.configure(hull,owner);next.syncAttitude();
         next.moveTo(getX(),getY()+(leavingOrbit?Atmosphere.SPACE:-Atmosphere.SPACE),getZ(),getYRot(),0);
         next.setDeltaMovement(getDeltaMovement());
         to.getChunkAt(next.blockPosition());
-        if (!to.noCollision(next,next.getBoundingBox()) || !to.addFreshEntity(next)) {setDeltaMovement(Vec3.ZERO);return;}
+        if (!to.noCollision(next,next.getBoundingBox()) || !to.addFreshEntity(next)) {setDeltaMovement(Vec3.ZERO);return null;}
         if (pilot!=null) {
-            pilot.stopRiding();pilot.teleportTo(to,next.getX(),next.getY()+hull.height,next.getZ(),pilot.getYRot(),pilot.getXRot());
+            pilot.stopRiding();pilot.teleportTo(to,next.getX(),next.getY()+next.getPassengersRidingOffset(),next.getZ(),pilot.getYRot(),pilot.getXRot());
             pilot.startRiding(next,true);pilot.fallDistance=0;
         }
-        discard();
+        discard();return next;
     }
     void dock(ServerPlayer p) {
         if (!p.getUUID().equals(owner) || !p.getAbilities().mayBuild || hull==null || isRemoved()) return;
@@ -107,12 +139,30 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         ejectPassengers(); if(riding) p.teleportTo(core.getX()+0.5,core.getY()+hull.floor+hull.height,core.getZ()+0.5);
         discard();ShipWrench.message(p,"船体を再設置しました");
     }
-    @Override protected void defineSynchedData() {}
+    @Override protected void defineSynchedData() { entityData.define(ROTATION,new Quaternionf()); }
+    private void syncAttitude() { previous.set(body.attitude);entityData.set(ROTATION,new Quaternionf(body.attitude)); }
     @Override protected void addAdditionalSaveData(CompoundTag t) {
-        if(hull!=null) t.put("parts",hull.save()); if(owner!=null)t.putUUID("owner",owner); t.putDouble("spin",spin);
+        if(hull!=null) t.put("parts",hull.save()); if(owner!=null)t.putUUID("owner",owner);
+        Quaternionf q=body.attitude;
+        t.putFloat("qx",q.x); t.putFloat("qy",q.y); t.putFloat("qz",q.z); t.putFloat("qw",q.w);
+        t.putFloat("lx",body.momentum.x); t.putFloat("ly",body.momentum.y); t.putFloat("lz",body.momentum.z);
     }
     @Override protected void readAdditionalSaveData(CompoundTag t) {
-        if(t.contains("parts") && t.hasUUID("owner")) configure(Hull.load(t.getList("parts",Tag.TAG_COMPOUND),level()),t.getUUID("owner"));spin=t.getDouble("spin");
+        if(!t.contains("parts") || !t.hasUUID("owner")) return;
+        Hull loaded=Hull.load(t.getList("parts",Tag.TAG_COMPOUND),level());
+        if (t.contains("qw")) {
+            body.attitude.set(t.getFloat("qx"),t.getFloat("qy"),t.getFloat("qz"),t.getFloat("qw"));
+            if (body.attitude.lengthSquared()>0 && Float.isFinite(body.attitude.lengthSquared())) body.attitude.normalize();
+            else body.attitude.identity();
+            body.momentum.set(t.getFloat("lx"),t.getFloat("ly"),t.getFloat("lz"));
+            if(!body.momentum.isFinite()) body.momentum.zero();
+        } else {
+            // 0.3.0 のヨー角と deg/tick を新しい世界座標の角運動量に変換。
+            body.attitude.rotationY(-getYRot()*Mth.DEG_TO_RAD);
+            body.momentum.set(0,-t.getFloat("spin")*Mth.DEG_TO_RAD,0);
+            loaded.inertiaTensor.transform(body.momentum);body.attitude.transform(body.momentum);
+        }
+        configure(loaded,t.getUUID("owner"));syncAttitude();
     }
     @Override public Packet<ClientGamePacketListener> getAddEntityPacket() { return NetworkHooks.getEntitySpawningPacket(this); }
     @Override public void writeSpawnData(FriendlyByteBuf b) {
