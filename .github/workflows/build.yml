@@ -37,6 +37,7 @@ jobs:
           grep -F 'AstroDock energy turret verified' build/gametest/logs/latest.log
           grep -F 'AstroDock modular engine verified' build/gametest/logs/latest.log
           grep -F 'AstroDock shell first verified' build/gametest/logs/latest.log
+          grep -F 'AstroDock airlock boarding verified' build/gametest/logs/latest.log
           grep -F 'AstroDock working cabin verified' build/gametest/logs/latest.log
           grep -F 'AstroDock shipyard verified' build/gametest/logs/latest.log
           grep -F 'AstroDock planet landing verified' build/gametest/logs/latest.log
