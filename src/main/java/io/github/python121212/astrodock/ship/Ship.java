@@ -108,9 +108,13 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     }
     Ship crossBoundary(ServerLevel from, ServerPlayer pilot) {
         var passage=PlanetTravel.at(from.dimension(),position());
-        if (passage==null) return null;
+        if (passage==null) {
+            if (pilot!=null && getDeltaMovement().y>0) OrbitArrival.prefetch(from,position(),tickCount);
+            return null;
+        }
         ServerLevel to=from.getServer().getLevel(passage.dimension());
         if (to==null || !to.getWorldBorder().isWithinBounds(BlockPos.containing(passage.position()))) return null;
+        if (pilot!=null && to.dimension()==AstroDock.ORBIT && !OrbitArrival.ready(to,passage.position())) return null;
         Ship next=new Ship(ShipParts.SHIP.get(),to);next.body.copyFrom(body);
         if (passage.frame()!=null) {
             next.body.attitude.premul(passage.frame()).normalize();
