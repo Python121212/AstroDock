@@ -82,8 +82,9 @@ final class CabinDeck {
         return BlockGetter.traverseBlocks(center,center.add(direction.scale(32)),cells,
                 (index,pos)->!pos.equals(mount) && index.containsKey(pos.asLong())?Boolean.FALSE:null,index->Boolean.TRUE);
     }
-    BlockState aimedBlock(Vec3 eye,Vec3 direction,double reach) {
+    BlockState stateAt(BlockPos p){return p==null?null:cells.get(p.asLong());}
+    BlockPos aimedPos(Vec3 eye,Vec3 direction,double reach) {
         return BlockGetter.traverseBlocks(eye,eye.add(direction.scale(reach)),cells,
-                (index,pos)->index.get(pos.asLong()),index->null);
+                (index,pos)->index.containsKey(pos.asLong())?pos.immutable():null,index->null);
     }
 }

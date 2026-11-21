@@ -60,5 +60,7 @@
   "core.astrodock.status8": "Invalid refit. Check cores, engine links, doors and the 256-part limit.",
   "core.astrodock.status9": "Not enough space outside or the ship could not be replaced.",
   "core.astrodock.status10": "Refit complete. Press H to return.",
-  "core.astrodock.status11": "Hull updated. No thrusters: ship remains moored."
+  "core.astrodock.status11": "Hull updated. No thrusters: ship remains moored.",
+  "hint.astrodock.blocked_port": "The doorway is obstructed",
+  "hint.astrodock.captain_only": "Only the owner can operate this station"
 }

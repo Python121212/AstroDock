@@ -111,9 +111,16 @@ public final class CabinRooms extends SavedData {
     static void enter(Ship s,ServerPlayer p,Room r) {
         ServerLevel c=level(p.serverLevel());Vec3 v=r.entry(c,s.hull());
         if(v==null) {ShipWrench.message(p,"船室に入れる足場がありません");return;}
-        r.visitors.add(p.getUUID());data(c).setDirty();p.getPersistentData().putInt(VISIT,r.id);
-        follow(p.serverLevel(),s.chunkPosition());p.stopRiding();
+        checkIn(s,p,r);p.stopRiding();
         p.teleportTo(c,v.x,v.y,v.z,p.getYRot(),0);p.setDeltaMovement(Vec3.ZERO);p.fallDistance=0;
+    }
+    static void checkIn(Ship s,ServerPlayer p,Room r){
+        r.visitors.add(p.getUUID());data(p.serverLevel()).setDirty();p.getPersistentData().putInt(VISIT,r.id);follow(p.serverLevel(),s.chunkPosition());
+    }
+    static void checkOut(ServerPlayer p,Room r){r.visitors.remove(p.getUUID());data(p.serverLevel()).setDirty();p.getPersistentData().remove(VISIT);}
+    static Room visiting(ServerPlayer p){
+        if(p.level().dimension()!=LEVEL || !p.getPersistentData().contains(VISIT))return null;
+        var r=data(p.serverLevel()).get(p.getPersistentData().getInt(VISIT));return r!=null && r.visitors.contains(p.getUUID())?r:null;
     }
     static Room visitedCore(ServerPlayer p,BlockPos core){
         if(p.level().dimension()!=LEVEL)return null;var r=data(p.serverLevel()).get(p.getPersistentData().getInt(VISIT));
@@ -125,11 +132,13 @@ public final class CabinRooms extends SavedData {
         if(r==null || !r.visitors.contains(p.getUUID()))return;
         var dest=p.serverLevel().getServer().getLevel(r.dimension);if(dest==null)return;
         follow(dest,r.chunk);if(!(dest.getEntity(r.shipId) instanceof Ship s)) {ShipWrench.message(p,"艦を読み込んでいます。少し待ってもう一度操作してください");return;}
-        r.visitors.remove(p.getUUID());d.setDirty();p.getPersistentData().remove(VISIT);
+        checkOut(p,r);
         p.teleportTo(dest,s.getX(),s.getY()+s.getPassengersRidingOffset(),s.getZ(),p.getYRot(),0);p.startRiding(s,true);p.fallDistance=0;
     }
     @SubscribeEvent public static void playerTick(TickEvent.PlayerTickEvent e) {
-        if(e.phase!=TickEvent.Phase.END || !(e.player instanceof ServerPlayer p) || p.tickCount%20!=0 || !p.getPersistentData().contains(VISIT))return;
+        if(e.phase!=TickEvent.Phase.END || !(e.player instanceof ServerPlayer p))return;
+        Walkway.step(p);
+        if(p.tickCount%20!=0 || !p.getPersistentData().contains(VISIT))return;
         CabinRooms d=data(p.serverLevel());Room r=d.get(p.getPersistentData().getInt(VISIT));if(r==null)return;
         if(p.level().dimension()!=LEVEL || !p.isAlive()) {r.visitors.remove(p.getUUID());d.setDirty();p.getPersistentData().remove(VISIT);return;}
         var dest=p.serverLevel().getServer().getLevel(r.dimension);if(dest!=null) follow(dest,r.chunk);
@@ -139,11 +148,21 @@ public final class CabinRooms extends SavedData {
             var d=data(p.serverLevel());var r=d.get(p.getPersistentData().getInt(VISIT));if(r!=null && r.visitors.remove(p.getUUID()))d.setDirty();
         }
     }
-    @SubscribeEvent public static void airlock(net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock e) {
-        var p=e.getEntity();if(e.getLevel().dimension()!=LEVEL || !p.isShiftKeyDown() || !e.getItemStack().isEmpty() ||
-                !HullDoors.airlock(e.getLevel().getBlockState(e.getPos()))) return;
+    @SubscribeEvent public static void station(net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock e) {
+        if(e.getLevel().dimension()!=LEVEL || e.getHand()!=net.minecraft.world.InteractionHand.MAIN_HAND || !e.getItemStack().isEmpty())return;
+        var state=e.getLevel().getBlockState(e.getPos());if(!state.is(ShipParts.HELM.get()) && !state.is(ShipParts.CONSOLE.get()))return;
         e.setCanceled(true);e.setCancellationResult(net.minecraft.world.InteractionResult.sidedSuccess(e.getLevel().isClientSide));
-        if(p instanceof ServerPlayer sp) leave(sp);
+        if(e.getEntity() instanceof ServerPlayer p) operate(p,e.getPos());
+    }
+    static void operate(ServerPlayer p,BlockPos pos){
+        var r=visiting(p);if(r==null || !r.contains(pos) || !p.isAlive() || p.isSpectator() || p.distanceToSqr(Vec3.atCenterOf(pos))>36)return;
+        var dest=p.serverLevel().getServer().getLevel(r.dimension);
+        if(dest==null || !(dest.getEntity(r.shipId) instanceof Ship s))return;
+        if(!s.isOwner(p)){p.displayClientMessage(net.minecraft.network.chat.Component.translatable("hint.astrodock.captain_only"),true);return;}
+        var part=pos.subtract(r.core);var installed=s.hull().deck.stateAt(part);var state=p.level().getBlockState(pos);
+        if(installed==null || !installed.is(state.getBlock())){ShipWrench.message(p,"艦船コアで設備を反映してください");return;}
+        if(state.is(ShipParts.CONSOLE.get()))s.toggleEngine(p);
+        else if(state.is(ShipParts.HELM.get())){leave(p);if(p.getVehicle()==s)s.takeHelm(p,part);}
     }
     @SubscribeEvent public static void breaking(BlockEvent.BreakEvent e) {
         if(!(e.getLevel() instanceof ServerLevel l) || l.dimension()!=LEVEL)return;

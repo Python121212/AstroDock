@@ -60,5 +60,7 @@
   "core.astrodock.status8": "構成が無効です。コア、機関の接続、ドア、256部品の上限を確認してください。",
   "core.astrodock.status9": "船外に空間が足りないか、艦を更新できませんでした。",
   "core.astrodock.status10": "設備を反映しました。Hで艦に戻れます。",
-  "core.astrodock.status11": "外装を反映しました。スラスター未搭載のため停泊中です。"
+  "core.astrodock.status11": "外装を反映しました。スラスター未搭載のため停泊中です。",
+  "hint.astrodock.blocked_port": "入口の先に立てる空間がありません",
+  "hint.astrodock.captain_only": "この設備を操作できるのは艦の所有者だけです"
 }

@@ -25,7 +25,7 @@ public final class ShipRenderer extends EntityRenderer<Ship> {
         poses.translate(-hull.cx-0.5,-hull.cy-0.5,-hull.cz-0.5);
         var renderer=Minecraft.getInstance().getBlockRenderer();
         for(Hull.Part part:hull.parts){poses.pushPose();poses.translate(part.pos().getX(),part.pos().getY(),part.pos().getZ());
-            renderer.renderSingleBlock(part.state(),poses,buffers,light,OverlayTexture.NO_OVERLAY);poses.popPose();}
+            renderer.renderSingleBlock(ship.visibleState(part),poses,buffers,light,OverlayTexture.NO_OVERLAY);poses.popPose();}
         poses.popPose();
     }
 }

@@ -33,6 +33,8 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     int roomId; // 0 は 0.9 以前の船体
     private CabinRooms.Room room() {return roomId==0?null:CabinRooms.data((ServerLevel)level()).get(roomId);}
     private UUID owner;
+    private static final EntityDataAccessor<Optional<BlockPos>> HELM_POS=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.OPTIONAL_BLOCK_POS);
+    private static final EntityDataAccessor<CompoundTag> DOORS=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Quaternionf> ROTATION = SynchedEntityData.defineId(Ship.class, EntityDataSerializers.QUATERNION);
     // 熱と負荷は変化した値だけを同期。負荷の下位2ビットは主砲への供給。
     private static final EntityDataAccessor<Integer> TEMPERATURE=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.INT),
@@ -131,12 +133,12 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         if(hull==null || !walking(p) || !hasPassenger(p)) return null;
         return aimedPart(p);
     }
-    private BlockState aimedPart(Player p) {return aimedPart(p,4.5);}
-    private BlockState aimedPart(Player p,double reach) {
+    private BlockState aimedPart(Player p) {return hull.deck.stateAt(aimedPos(p,4.5));}
+    private BlockPos aimedPos(Player p,double reach) {
         Vector3f eye=p.getEyePosition().subtract(getX(),getY()+hull.pivotHeight,getZ()).toVector3f();
         body.attitude.transformInverse(eye).add((float)(hull.cx+.5),(float)(hull.cy+.5),(float)(hull.cz+.5));
         Vector3f look=body.attitude.transformInverse(p.getLookAngle().toVector3f());
-        return hull.deck.aimedBlock(new Vec3(eye.x,eye.y,eye.z),new Vec3(look.x,look.y,look.z),reach);
+        return hull.deck.aimedPos(new Vec3(eye.x,eye.y,eye.z),new Vec3(look.x,look.y,look.z),reach);
     }
     public boolean hasPanelInSight(Player p) {
         BlockState b=aimedPanel(p);
@@ -204,13 +206,16 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         p.displayClientMessage(Component.translatable(installed?"hint.astrodock.muzzle_blocked":"hint.astrodock.no_mount",w.mount.get().getName()),true);
     }
     void restoreCannonCooldown(long readyAt){int k=ShipWeapon.CANNON.ordinal();nextShot[k]=Math.max(nextShot[k],readyAt);}
-    private void toggleEngine(ServerPlayer p) {
+    void toggleEngine(ServerPlayer p) {
         entityData.set(ENGINE_ON,!engineOn());
         p.displayClientMessage(Component.translatable(engineOn()?"hud.astrodock.engine_on":"hud.astrodock.engine_off"),true);
     }
+    void takeHelm(ServerPlayer p,BlockPos part){entityData.set(HELM_POS,Optional.of(part));positionRider(p);}
     @Override protected void positionRider(Entity p,Entity.MoveFunction move) {
         if(hull!=null && hasPassenger(p) && walking(p)) {
             Vec3 at=worldFeet(p);move.accept(p,at.x,at.y,at.z);
+        } else if(hull!=null && hasPassenger(p) && isOwner(p) && entityData.get(HELM_POS).isPresent()){
+            var at=world(Vec3.atBottomCenterOf(entityData.get(HELM_POS).get()).add(0,.5,0));move.accept(p,at.x,at.y,at.z);
         } else super.positionRider(p,move);
     }
     @Override public boolean shouldRiderSit() {return !ownerWalking() && getPassengers().size()==1 && isOwner(getFirstPassenger());}
@@ -233,7 +238,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     @Override protected void removePassenger(Entity p) {
         super.removePassenger(p);
         if(!level().isClientSide) {
-            if(isOwner(p)) entityData.set(ON_DECK,false);
+            if(isOwner(p)){entityData.set(ON_DECK,false);entityData.set(HELM_POS,Optional.empty());}
             else {Guest g=slot(p.getUUID());if(g!=null) entityData.set(g.id,Optional.empty());}
         }
     }
@@ -263,14 +268,54 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         Vec3 eye=p.getEyePosition(),end=eye.add(p.getLookAngle().scale(4.5));
         var obstruction=level().clip(new net.minecraft.world.level.ClipContext(eye,end,net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,p));
         double reach=obstruction.getType()==HitResult.Type.MISS?4.5:eye.distanceTo(obstruction.getLocation());
-        if(reach<=0 || !HullDoors.airlock(aimedPart(p,reach)))return InteractionResult.PASS;
+        BlockPos hit=reach>0?aimedPos(p,reach):null;var part=hull.deck.stateAt(hit);
+        if(!HullDoors.airlock(part))return InteractionResult.PASS;
         if(!level().isClientSide){
-            var r=room();
-            if(r==null)ShipWrench.message(p,"作業船室がありません。艦を再設置して組み直してください");
-            else if(!canAddPassenger(p))p.displayClientMessage(Component.translatable("hint.astrodock.crew_full"),true);
-            else CabinRooms.enter(this,(ServerPlayer)p,r); // 失敗した場合も操縦席や甲板には乗せない。
+            var r=room();if(r==null){ShipWrench.message(p,"作業船室がありません。艦を再設置して組み直してください");return InteractionResult.FAIL;}
+            var cabin=CabinRooms.level((ServerLevel)level());var port=r.core.offset(hit);var live=cabin.getBlockState(port);
+            if(!live.is(part.getBlock()))return InteractionResult.FAIL;
+            live.use(cabin,p,hand,new BlockHitResult(Vec3.atCenterOf(port),Direction.UP,port,false));
+            syncDoors(cabin,r);boolean open=cabin.getBlockState(port).getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.OPEN);
+            level().playSound(null,p.blockPosition(),open?net.minecraft.sounds.SoundEvents.IRON_DOOR_OPEN:net.minecraft.sounds.SoundEvents.IRON_DOOR_CLOSE,net.minecraft.sounds.SoundSource.BLOCKS,1f,1f);
         }
         return InteractionResult.sidedSuccess(level().isClientSide);
+    }
+    public BlockState visibleState(Hull.Part part){
+        if(!HullDoors.airlock(part.state()))return part.state();
+        String key=Long.toString(part.pos().asLong());var states=entityData.get(DOORS);
+        return states.contains(key)?part.state().setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.OPEN,states.getBoolean(key)):part.state();
+    }
+    private void syncDoors(ServerLevel c,CabinRooms.Room r){
+        if(hull.doors.isEmpty() || !c.hasChunkAt(r.core))return;
+        CompoundTag tag=new CompoundTag();var open=net.minecraft.world.level.block.state.properties.BlockStateProperties.OPEN;
+        for(var part:hull.doors){var state=c.getBlockState(r.core.offset(part.pos()));
+            boolean active=state.is(part.state().getBlock()) && state.getValue(open);
+            if(active!=part.state().getValue(open))tag.putBoolean(Long.toString(part.pos().asLong()),active);
+        }entityData.set(DOORS,tag);
+    }
+    private Vec3 local(Vec3 world){
+        var v=body.attitude.transformInverse(world.subtract(getX(),getY()+hull.pivotHeight,getZ()).toVector3f());
+        return new Vec3(v.x+.5+hull.cx,v.y+.5+hull.cy,v.z+.5+hull.cz);
+    }
+    private Vec3 world(Vec3 local){
+        var v=body.attitude.transform(local.subtract(.5+hull.cx,.5+hull.cy,.5+hull.cz).toVector3f());
+        return position().add(v.x,hull.pivotHeight+v.y,v.z);
+    }
+    boolean walkIn(ServerPlayer p,Vec3 from,Vec3 to){
+        var r=room();return r!=null && passDoor(p,r,local(from),local(to),true);
+    }
+    boolean passDoor(ServerPlayer p,CabinRooms.Room r,Vec3 a,Vec3 b,boolean enter){
+        var shell=(ServerLevel)level();var c=CabinRooms.level(shell);
+        for(var door:hull.walkways){
+            if(!door.crossed(a,b,enter,p.getBbHeight()) || !door.isOpen(c,r))continue;
+            Vec3 local=door.landing(enter,p.getBbHeight());var dest=enter?c:shell;
+            Vec3 at=enter?local.add(Vec3.atLowerCornerOf(r.core)):world(local);
+            if(enter && !canAddPassenger(p)){p.displayClientMessage(Component.translatable("hint.astrodock.crew_full"),true);return false;}
+            if(!Walkway.fits(dest,p,at)){p.displayClientMessage(Component.translatable("hint.astrodock.blocked_port"),true);return false;}
+            var look=p.getLookAngle().toVector3f();if(enter){body.attitude.transformInverse(look);CabinRooms.checkIn(this,p,r);}else{body.attitude.transform(look);CabinRooms.checkOut(p,r);}
+            p.teleportTo(dest,at.x,at.y,at.z,(float)Math.toDegrees(Math.atan2(-look.x,look.z)),(float)Math.toDegrees(-Math.asin(Mth.clamp(look.y,-1,1))));
+            p.setDeltaMovement(enter?Vec3.ZERO:getDeltaMovement());p.fallDistance=0;return true;
+        }return false;
     }
     @Override public void lerpTo(double x,double y,double z,float yaw,float pitch,int count,boolean teleport) {
         tx=x;ty=y;tz=z;targetYaw=yaw;steps=Math.max(1,count);
@@ -288,6 +333,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             var d=CabinRooms.data((ServerLevel)level());var r=d.get(roomId);
             if(r!=null) {
                 var shell=(ServerLevel)level();var c=CabinRooms.level(shell);
+                if(tickCount%4==0)syncDoors(c,r);
                 if(tickCount%10==0 || !chunkPosition().equals(r.chunk)) {
                     CabinRooms.ticket(c,new net.minecraft.world.level.ChunkPos(r.core));
                     if(r.visitors.stream().anyMatch(id->c.getPlayerByUUID(id)!=null))CabinRooms.follow(shell,chunkPosition());
@@ -362,6 +408,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         to.getChunkAt(next.blockPosition());
         next.entityData.set(TEMPERATURE,entityData.get(TEMPERATURE));next.entityData.set(LOAD,entityData.get(LOAD));
         next.entityData.set(ENGINE_ON,engineOn());
+        next.entityData.set(HELM_POS,entityData.get(HELM_POS));
         next.entityData.set(FEET,new Vector3f(entityData.get(FEET)));next.entityData.set(ON_DECK,ownerWalking());
         for(Guest g:GUESTS) {
             next.entityData.set(g.id,entityData.get(g.id));next.entityData.set(g.feet,new Vector3f(entityData.get(g.feet)));
@@ -462,7 +509,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         ejectPassengers(); if(riding) p.teleportTo(core.getX()+0.5,core.getY()+hull.floor+hull.height,core.getZ()+0.5);
         discard();ShipWrench.message(p,"船体を再設置しました");
     }
-    @Override protected void defineSynchedData() { entityData.define(ROTATION,new Quaternionf());
+    @Override protected void defineSynchedData() { entityData.define(ROTATION,new Quaternionf());entityData.define(DOORS,new CompoundTag());entityData.define(HELM_POS,Optional.empty());
         entityData.define(TEMPERATURE,0);entityData.define(LOAD,0);
         entityData.define(ENGINE_ON,true);entityData.define(ON_DECK,false);entityData.define(FEET,new Vector3f());
         for(Guest g:GUESTS) {entityData.define(g.id,Optional.empty());entityData.define(g.feet,new Vector3f());}
@@ -471,6 +518,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     @Override protected void addAdditionalSaveData(CompoundTag t) {
         t.putLongArray("nextShot",nextShot);t.putInt("room",roomId);
         if(hull!=null) t.put("parts",hull.save()); if(owner!=null)t.putUUID("owner",owner);
+        entityData.get(HELM_POS).ifPresent(pos->t.putLong("helmPos",pos.asLong()));
         t.putBoolean("engineOn",engineOn());t.putInt("plantHeat",entityData.get(TEMPERATURE));
         if(ownerWalking()) {var feet=entityData.get(FEET);t.putFloat("deckX",feet.x);t.putFloat("deckY",feet.y);t.putFloat("deckZ",feet.z);}
         ListTag guests=new ListTag();
@@ -501,6 +549,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             loaded.inertiaTensor.transform(body.momentum);body.attitude.transform(body.momentum);
         }
         int temp=t.getInt("plantHeat");entityData.set(TEMPERATURE,temp>=0 && temp<=228 && temp%128<=100?temp:0);
+        if(t.contains("helmPos")){var pos=BlockPos.of(t.getLong("helmPos"));var block=loaded.deck.stateAt(pos);if(block!=null && block.is(ShipParts.HELM.get()))entityData.set(HELM_POS,Optional.of(pos));}
         configure(loaded,t.getUUID("owner"));syncAttitude();
         entityData.set(ENGINE_ON,!t.contains("engineOn") || t.getBoolean("engineOn"));
         var feet=new Vector3f(t.getFloat("deckX"),t.getFloat("deckY"),t.getFloat("deckZ"));
