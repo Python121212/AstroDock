@@ -77,6 +77,11 @@ final class CabinDeck {
         Vector3f first=slide(feet,x,feet.z,(int)feet.y);
         return slide(first,first.x,z,(int)feet.y);
     }
+    boolean clearMuzzle(BlockPos mount,Vec3 direction) {
+        Vec3 center=Vec3.atCenterOf(mount);
+        return BlockGetter.traverseBlocks(center,center.add(direction.scale(32)),cells,
+                (index,pos)->!pos.equals(mount) && index.containsKey(pos.asLong())?Boolean.FALSE:null,index->Boolean.TRUE);
+    }
     BlockState aimedBlock(Vec3 eye,Vec3 direction) {
         return BlockGetter.traverseBlocks(eye,eye.add(direction.scale(4.5)),cells,
                 (index,pos)->index.get(pos.asLong()),index->null);

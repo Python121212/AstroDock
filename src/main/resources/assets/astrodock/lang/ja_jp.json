@@ -25,5 +25,17 @@
   "hint.astrodock.crew_aboard": "再設置する前に乗員に降りてもらってください",
   "block.astrodock.airlock_door": "艦外ドア",
   "block.astrodock.exterior_hatch": "艦外トラップドア",
-  "key.astrodock.cabin": "作業船室に入る／戻る"
+  "key.astrodock.cabin": "作業船室に入る／戻る",
+  "block.astrodock.main_cannon": "主砲",
+  "block.astrodock.missile_launcher": "ミサイル発射機",
+  "block.astrodock.torpedo_tube": "魚雷発射管",
+  "key.astrodock.cannon": "主砲を撃つ",
+  "key.astrodock.missile": "ミサイルを撃つ",
+  "key.astrodock.torpedo": "魚雷を撃つ",
+  "entity.astrodock.cannon_shot": "主砲弾",
+  "entity.astrodock.missile": "ミサイル",
+  "entity.astrodock.torpedo": "魚雷",
+  "hint.astrodock.no_ammo": "弾薬がありません：%s",
+  "hint.astrodock.muzzle_blocked": "射線が船体部品で塞がれています：%s",
+  "hint.astrodock.no_mount": "艦に搭載されていません：%s"
 }

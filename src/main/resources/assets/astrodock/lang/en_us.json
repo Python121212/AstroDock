@@ -25,5 +25,17 @@
   "hint.astrodock.crew_aboard": "Passengers must disembark before docking",
   "block.astrodock.airlock_door": "Exterior Airlock Door",
   "block.astrodock.exterior_hatch": "Exterior Hatch",
-  "key.astrodock.cabin": "Enter / leave working cabin"
+  "key.astrodock.cabin": "Enter / leave working cabin",
+  "block.astrodock.main_cannon": "Main Cannon",
+  "block.astrodock.missile_launcher": "Missile Launcher",
+  "block.astrodock.torpedo_tube": "Torpedo Tube",
+  "key.astrodock.cannon": "Fire main cannon",
+  "key.astrodock.missile": "Launch missile",
+  "key.astrodock.torpedo": "Launch torpedo",
+  "entity.astrodock.cannon_shot": "Cannon Shot",
+  "entity.astrodock.missile": "Missile",
+  "entity.astrodock.torpedo": "Torpedo",
+  "hint.astrodock.no_ammo": "Out of ammunition: %s",
+  "hint.astrodock.muzzle_blocked": "Hull obstructs the shot: %s",
+  "hint.astrodock.no_mount": "Not installed: %s"
 }

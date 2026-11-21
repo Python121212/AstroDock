@@ -16,13 +16,14 @@ import org.lwjgl.glfw.GLFW;
 @Mod.EventBusSubscriber(modid="astrodock",value=Dist.CLIENT)
 public final class CrewControls {
     private static final KeyMapping ENGINE=key("engine",GLFW.GLFW_KEY_G), SEAT=key("seat",GLFW.GLFW_KEY_V), CABIN=key("cabin",GLFW.GLFW_KEY_H);
+    private static final KeyMapping CANNON=key("cannon",GLFW.GLFW_KEY_Z), MISSILE=key("missile",GLFW.GLFW_KEY_X), TORPEDO=key("torpedo",GLFW.GLFW_KEY_C);
     private static boolean usedPanel;
     private static KeyMapping key(String name,int code) {
         return new KeyMapping("key.astrodock."+name,KeyConflictContext.IN_GAME,InputConstants.Type.KEYSYM,code,"key.categories.astrodock");
     }
     @Mod.EventBusSubscriber(modid="astrodock",value=Dist.CLIENT,bus=Mod.EventBusSubscriber.Bus.MOD)
     public static class Keys {
-        @SubscribeEvent public static void register(RegisterKeyMappingsEvent e){ e.register(ENGINE);e.register(SEAT);e.register(CABIN); }
+        @SubscribeEvent public static void register(RegisterKeyMappingsEvent e){ e.register(ENGINE);e.register(SEAT);e.register(CABIN);e.register(CANNON);e.register(MISSILE);e.register(TORPEDO); }
     }
     @SubscribeEvent public static void input(TickEvent.ClientTickEvent e) {
         if(e.phase!=TickEvent.Phase.END) return;
@@ -30,8 +31,12 @@ public final class CrewControls {
         Ship ship=mc.screen==null && mc.player!=null && mc.player.getVehicle() instanceof Ship s?s:null;
         if(!mc.options.keyUse.isDown() || ship==null) usedPanel=false;
         while(CABIN.consumeClick()) if(mc.screen==null && mc.player!=null && (ship!=null || mc.player.level().dimension()==CabinRooms.LEVEL)) ShipCommand.send(ship,ShipCommand.Action.CABIN);
+        fire(CANNON,ship,mc,ShipCommand.Action.CANNON);fire(MISSILE,ship,mc,ShipCommand.Action.MISSILE);fire(TORPEDO,ship,mc,ShipCommand.Action.TORPEDO);
         while(ENGINE.consumeClick()) if(ship!=null && ship.isOwner(mc.player)) ShipCommand.send(ship,ShipCommand.Action.ENGINE);
         while(SEAT.consumeClick()) if(ship!=null && ship.isOwner(mc.player)) ShipCommand.send(ship,ShipCommand.Action.SEAT);
+    }
+    private static void fire(KeyMapping key, Ship ship, Minecraft mc, ShipCommand.Action action) {
+        while(key.consumeClick()) if(ship!=null && ship.isOwner(mc.player) && !ship.walking(mc.player)) ShipCommand.send(ship,action);
     }
     @SubscribeEvent public static void use(InputEvent.InteractionKeyMappingTriggered e) {
         var p=Minecraft.getInstance().player;

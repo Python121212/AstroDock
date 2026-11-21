@@ -6,6 +6,9 @@
     "astrodock:helm",
     "astrodock:engine_console",
     "astrodock:airlock_door",
-    "astrodock:exterior_hatch"
+    "astrodock:exterior_hatch",
+    "astrodock:main_cannon",
+    "astrodock:missile_launcher",
+    "astrodock:torpedo_tube"
   ]
 }
