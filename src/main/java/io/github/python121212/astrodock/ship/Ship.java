@@ -204,12 +204,13 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         Vec3 at=passage.position();next.moveTo(at.x,at.y,at.z,next.body.heading(getYRot()),0);
         next.setDeltaMovement(passage.rotate(getDeltaMovement()));
         to.getChunkAt(next.blockPosition());
-        if (!to.noCollision(next,next.getBoundingBox()) || !to.addFreshEntity(next)) {setDeltaMovement(Vec3.ZERO);return null;}
         next.entityData.set(ENGINE_ON,engineOn());
+        if(pilot!=null && walking()) {next.entityData.set(FEET,deckFeet());next.entityData.set(ON_DECK,true);}
+        if (!to.noCollision(next,next.getBoundingBox()) || !to.addFreshEntity(next)) {setDeltaMovement(Vec3.ZERO);return null;}
         if (pilot!=null) {
-            next.entityData.set(FEET,deckFeet());next.entityData.set(ON_DECK,walking());
             Vec3 look=passage.rotate(pilot.getLookAngle());
-            pilot.stopRiding();pilot.teleportTo(to,next.getX(),next.getY()+next.getPassengersRidingOffset(),next.getZ(),passage.yaw(look,pilot.getYRot()),passage.pitch(look,pilot.getXRot()));
+            Vec3 arrival=next.walking()?next.worldFeet():next.position().add(0,next.getPassengersRidingOffset(),0);
+            pilot.stopRiding();pilot.teleportTo(to,arrival.x,arrival.y,arrival.z,passage.yaw(look,pilot.getYRot()),passage.pitch(look,pilot.getXRot()));
             pilot.startRiding(next,true);next.positionRider(pilot);pilot.fallDistance=0;
         }
         discard();return next;
