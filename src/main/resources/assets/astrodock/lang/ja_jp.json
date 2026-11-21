@@ -19,5 +19,8 @@
   "hud.astrodock.engine_off": "主機：停止",
   "hud.astrodock.at_helm": "操縦席 ｜ %s",
   "hud.astrodock.on_deck": "艦内歩行 ｜ %s",
-  "hint.astrodock.no_deck": "立てる床がありません（床上に2ブロックの空間が必要です）"
+  "hint.astrodock.no_deck": "立てる床がありません（床上に2ブロックの空間が必要です）",
+  "hud.astrodock.guest": "乗員 ｜ %s",
+  "hint.astrodock.crew_full": "乗員枠または乗り込める床が空いていません",
+  "hint.astrodock.crew_aboard": "再設置する前に乗員に降りてもらってください"
 }

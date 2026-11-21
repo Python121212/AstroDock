@@ -200,6 +200,10 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             if(isOwner(rider)) captain=rider;
             if(walking(rider)) walk(rider);
         }
+        // 複数人搭乗中のサーバー終了などでバニラが乗員を復元しない場合も、空席を回収する。
+        if(tickCount%20==0) for(Guest g:GUESTS) entityData.get(g.id).ifPresent(id->{
+            if(getPassengers().stream().noneMatch(r->r.getUUID().equals(id))) entityData.set(g.id,Optional.empty());
+        });
         if(captain==null && ownerWalking()) entityData.set(ON_DECK,false);
         ServerPlayer pilot=engineOn() && !ownerWalking()?captain:null;
         double altitude=AstroDock.altitude(level(),getY());

@@ -32,6 +32,7 @@ jobs:
           grep -F 'AstroDock orbit prefetch verified' build/gametest/logs/latest.log
           grep -F 'AstroDock pilot controls verified' build/gametest/logs/latest.log
           grep -F 'AstroDock engine and deck verified' build/gametest/logs/latest.log
+          grep -F 'AstroDock four crew verified' build/gametest/logs/latest.log
           grep -F 'AstroDock shipyard verified' build/gametest/logs/latest.log
           grep -F 'AstroDock planet landing verified' build/gametest/logs/latest.log
           grep 'ASTRO_BENCH blocks=' build/gametest/logs/latest.log | sed 's/.*ASTRO_BENCH/::notice title=Physics benchmark::ASTRO_BENCH/'

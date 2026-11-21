@@ -29,8 +29,8 @@ public final class CrewControls {
         var mc=Minecraft.getInstance();
         Ship ship=mc.screen==null && mc.player!=null && mc.player.getVehicle() instanceof Ship s?s:null;
         if(!mc.options.keyUse.isDown() || ship==null) usedPanel=false;
-        while(ENGINE.consumeClick()) if(ship!=null) ShipCommand.send(ship,ShipCommand.Action.ENGINE);
-        while(SEAT.consumeClick()) if(ship!=null) ShipCommand.send(ship,ShipCommand.Action.SEAT);
+        while(ENGINE.consumeClick()) if(ship!=null && ship.isOwner(mc.player)) ShipCommand.send(ship,ShipCommand.Action.ENGINE);
+        while(SEAT.consumeClick()) if(ship!=null && ship.isOwner(mc.player)) ShipCommand.send(ship,ShipCommand.Action.SEAT);
     }
     @SubscribeEvent public static void use(InputEvent.InteractionKeyMappingTriggered e) {
         var p=Minecraft.getInstance().player;
