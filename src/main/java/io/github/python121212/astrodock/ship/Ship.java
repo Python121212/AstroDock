@@ -83,7 +83,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         if(pilot==null)return 0;
         return Mth.ceil(hull.engines*(Math.min(1,Math.abs(pilot.zza))+Math.min(1,Math.abs(pilot.xxa))+(pilot.jumping?1:0)));
     }
-    private float allocatePower(ServerPlayer pilot,long now){
+    float allocatePower(ServerPlayer pilot,long now){
         if(!customEngine())return 1;
         int old=entityData.get(LOAD);
         int temp=hull.plant.nextHeat(heat(),(old>>2)+(old&3));
