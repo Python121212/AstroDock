@@ -8,7 +8,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 /** クライアントから座標や推力は受け取らない。操作の可否と照準はサーバーで決める。 */
 public record ShipCommand(int shipId, Action action) {
     public enum Action { ENGINE, SEAT, USE_PANEL, CABIN, CANNON, MISSILE, TORPEDO }
-    private static final SimpleChannel CHANNEL=NetworkRegistry.newSimpleChannel(new ResourceLocation("astrodock","crew"),()->"6","6"::equals,"6"::equals);
+    private static final SimpleChannel CHANNEL=NetworkRegistry.newSimpleChannel(new ResourceLocation("astrodock","crew"),()->"7","7"::equals,"7"::equals);
     public static void register() {
         CHANNEL.messageBuilder(ShipCommand.class,0,NetworkDirection.PLAY_TO_SERVER)
                 .encoder((m,b)->{b.writeVarInt(m.shipId);b.writeEnum(m.action);})

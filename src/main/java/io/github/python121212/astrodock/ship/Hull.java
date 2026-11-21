@@ -19,11 +19,15 @@ public final class Hull {
     final float armX, armY, armZ;
     final Matrix3f inertiaTensor, inverseInertia;
     final CabinDeck deck;
+    final List<Walkway> walkways;
+    final List<Part> doors;
     public final boolean hasHelm;
     public final int engines, floor, height;
     public Hull(List<Part> parts) {
         if (parts.isEmpty() || parts.size() > ShipWrench.MAX_PARTS) throw new IllegalArgumentException("船体サイズが不正です");
         this.parts = List.copyOf(parts);
+        doors=this.parts.stream().filter(part->HullDoors.airlock(part.state())).toList();
+        walkways=doors.isEmpty()?List.of():Walkway.find(this.parts);
         plant=EnginePlant.build(this.parts);
         deck=new CabinDeck(this.parts);
         double m=0, x=0, y=0, z=0;
