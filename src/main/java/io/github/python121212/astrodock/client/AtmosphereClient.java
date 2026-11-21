@@ -53,7 +53,9 @@ public final class AtmosphereClient {
             b.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
             layer.draw(b, e.getPoseStack().last().pose(), y);
             BufferUploader.drawWithShader(b.end());
-            if (camera.getEntity().level().dimension()==AstroDock.ORBIT) RubraGlobe.draw(e);
+            if (camera.getEntity().level().dimension()==AstroDock.ORBIT) {
+                OrbitalGlobe.EARTH.draw(e);OrbitalGlobe.RUBRA.draw(e);
+            }
         } finally {
             RenderSystem.depthMask(true); RenderSystem.enableCull(); RenderSystem.disableBlend();
         }
@@ -80,7 +82,7 @@ public final class AtmosphereClient {
     @SubscribeEvent public static void effects(TickEvent.ClientTickEvent e) {
         if (e.phase != TickEvent.Phase.END) return;
         var mc = Minecraft.getInstance(); var p = mc.player;
-        if (p == null || p.level().dimension()!=AstroDock.ORBIT) RubraGlobe.release();
+        if (p == null || p.level().dimension()!=AstroDock.ORBIT) { OrbitalGlobe.EARTH.release();OrbitalGlobe.RUBRA.release(); }
         if (p == null) { select(-1); wind = engine = null; return; }
         double y = altitude(p, p.getY());
         if (mc.isPaused() || y < 320) return;

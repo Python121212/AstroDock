@@ -8,5 +8,7 @@
   "hud.astrodock.rubra_distance": "Rubra · %s blocks to entry",
   "hud.astrodock.rubra_surface": "Rubra · surface",
   "tab.astrodock.shipyard": "AstroDock: Shipyard",
-  "hint.astrodock.ship_core": "Use the ship wrench on this core to select the hull."
+  "hint.astrodock.ship_core": "Use the ship wrench on this core to select the hull.",
+  "block.astrodock.helm": "Flight Stick",
+  "hint.astrodock.selection_cleared": "Hull selection cleared"
 }

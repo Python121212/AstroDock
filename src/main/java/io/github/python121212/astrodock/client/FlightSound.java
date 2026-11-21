@@ -12,7 +12,7 @@ final class FlightSound extends AbstractTickableSoundInstance {
     private final boolean engine;
 
     static boolean audible(LocalPlayer pilot, double y, boolean engine) {
-        return (engine ? y >= 320 && (pilot.getUseItem().is(AstroDock.CAPSULE.get()) || pilot.getVehicle() instanceof io.github.python121212.astrodock.ship.Ship && pilot.input.up) : y >= 800 && y < 5000)
+        return (engine ? y >= 320 && (pilot.getUseItem().is(AstroDock.CAPSULE.get()) || pilot.getVehicle() instanceof io.github.python121212.astrodock.ship.Ship && (pilot.input.up || pilot.input.jumping)) : y >= 800 && y < 5000)
                 && pilot.getRootVehicle().getDeltaMovement().lengthSqr() > 0.25;
     }
     FlightSound(LocalPlayer pilot, boolean engine) {

@@ -8,5 +8,7 @@
   "hud.astrodock.rubra_distance": "ルブラ · 突入まで %s ブロック",
   "hud.astrodock.rubra_surface": "ルブラ · 地表",
   "tab.astrodock.shipyard": "AstroDock：造船所",
-  "hint.astrodock.ship_core": "艦船レンチでコアを右クリックし、船体範囲を指定してください"
+  "hint.astrodock.ship_core": "艦船レンチでコアを右クリックし、船体範囲を指定してください",
+  "block.astrodock.helm": "操縦桿",
+  "hint.astrodock.selection_cleared": "範囲選択を解除しました"
 }
