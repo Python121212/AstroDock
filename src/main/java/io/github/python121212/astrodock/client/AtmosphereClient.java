@@ -9,7 +9,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.*;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
@@ -23,6 +22,7 @@ import net.minecraftforge.fml.common.Mod;
 public final class AtmosphereClient {
     private static final EnumMap<Band,SkyLayer> layers = new EnumMap<>(Band.class);
     private static Band visible, pending;
+    private static FlightSound wind, engine;
     private static double altitude(Entity e, double y) {
         return e != null && AstroDock.supported(e.level()) ? AstroDock.altitude(e.level(), y) : -1;
     }
@@ -79,17 +79,16 @@ public final class AtmosphereClient {
     @SubscribeEvent public static void effects(TickEvent.ClientTickEvent e) {
         if (e.phase != TickEvent.Phase.END) return;
         var mc = Minecraft.getInstance(); var p = mc.player;
-        if (p == null) { select(-1); return; }
+        if (p == null) { select(-1); wind = engine = null; return; }
         double y = altitude(p, p.getY());
         if (mc.isPaused() || y < 320) return;
         Vec3 v = motion(p);
         float speed = (float)Atmosphere.ramp(v.length(), 0.5, 3);
-        float air = (float)(1 - Atmosphere.muffling(y));
-        if (p.tickCount % 16 == 0 && speed > 0) {
-            if (y >= 800 && air > 0) mc.level.playLocalSound(p.getX(), p.getY(), p.getZ(), SoundEvents.ELYTRA_FLYING,
-                    SoundSource.PLAYERS, 0.18f * speed * air, 0.55f + speed * air, false);
-            if (p.getUseItem().is(AstroDock.CAPSULE.get())) mc.level.playLocalSound(p.getX(), p.getY(), p.getZ(),
-                    SoundEvents.BEACON_AMBIENT, SoundSource.PLAYERS, speed * (0.03f + 0.15f*air), 0.5f + air*0.5f, false);
+        if (FlightSound.audible(p, y, false) && (wind == null || !mc.getSoundManager().isActive(wind))) {
+            mc.getSoundManager().play(wind = new FlightSound(p, false));
+        }
+        if (FlightSound.audible(p, y, true) && (engine == null || !mc.getSoundManager().isActive(engine))) {
+            mc.getSoundManager().play(engine = new FlightSound(p, true));
         }
         if (y >= 2000 && y < 5000 && v.y < -0.7) {
             int count = (int)Math.ceil(4 * speed * (1 - Atmosphere.rarefaction(y)));

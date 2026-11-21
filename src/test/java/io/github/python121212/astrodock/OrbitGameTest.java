@@ -17,6 +17,7 @@ public class OrbitGameTest {
         orbit.setBlockAndUpdate(pos, Blocks.IRON_BLOCK.defaultBlockState());
         test.assertTrue(orbit.getBlockState(pos).is(Blocks.IRON_BLOCK), "宇宙で建築できません");
         orbit.removeBlock(pos, false);
+        com.mojang.logging.LogUtils.getLogger().info("AstroDock orbit placement verified");
         test.succeed();
     }
 }

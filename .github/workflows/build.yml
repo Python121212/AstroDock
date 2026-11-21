@@ -14,7 +14,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew build --no-daemon
       - name: 宇宙ディメンションの建築テスト
-        run: ./gradlew runGameTestServer --no-daemon
+        run: |
+          ./gradlew runGameTestServer --no-daemon
+          grep -F 'AstroDock orbit placement verified' build/gametest/logs/latest.log
         timeout-minutes: 8
       - name: JAR の内容を確認
         run: |
