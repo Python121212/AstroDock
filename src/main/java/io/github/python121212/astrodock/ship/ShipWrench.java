@@ -32,14 +32,17 @@ public final class ShipWrench extends Item {
         if (p==null || p.isSpectator() || !p.getAbilities().mayBuild || !AstroDock.supported(l)) return InteractionResult.PASS;
         if (p.getVehicle() instanceof Ship ship) { if (!l.isClientSide) ship.dock((ServerPlayer)p); return InteractionResult.SUCCESS; }
         CompoundTag t=stack.getTagElement(EDIT);
-        if (t==null && !l.getBlockState(pos).is(ShipParts.CORE.get())) return InteractionResult.PASS;
+        boolean plant=l.getBlockState(pos).is(ShipParts.PLANT.get());
+        if (t==null && !plant && !l.getBlockState(pos).is(ShipParts.CORE.get())) return InteractionResult.PASS;
         if (l.isClientSide) return InteractionResult.SUCCESS;
         if (t==null) {
-            t=stack.getOrCreateTagElement(EDIT); t.putLong("core",pos.asLong()); t.putString("dim",l.dimension().location().toString());
+            if(plant && !l.mayInteract(p,pos))return InteractionResult.FAIL;
+            if(plant && p.isShiftKeyDown() && l.getBlockEntity(pos) instanceof EngineAnchor anchor){anchor.setRange(null);message(p,"機関部の範囲を自動に戻しました");return InteractionResult.SUCCESS;}
+            t=stack.getOrCreateTagElement(EDIT);t.putBoolean("plant",plant); t.putLong("core",pos.asLong()); t.putString("dim",l.dimension().location().toString());
             t.putBoolean("all",!p.isShiftKeyDown()); message(p,"範囲の1点目を右クリック（空中をしゃがみ右クリックで中止）"); return InteractionResult.SUCCESS;
         }
         BlockPos core=BlockPos.of(t.getLong("core"));
-        if (!t.getString("dim").equals(l.dimension().location().toString()) || !l.hasChunkAt(core) || !l.getBlockState(core).is(ShipParts.CORE.get())) {
+        if (!t.getString("dim").equals(l.dimension().location().toString()) || !l.hasChunkAt(core) || !l.getBlockState(core).is(t.getBoolean("plant")?ShipParts.PLANT.get():ShipParts.CORE.get())) {
             stack.removeTagKey(EDIT); message(p,"元のコアが見つかりません。設定を解除しました"); return InteractionResult.SUCCESS;
         }
         if (p.isShiftKeyDown() && pos.equals(core)) {
@@ -51,7 +54,11 @@ public final class ShipWrench extends Item {
         else if (!t.contains("b")) {
             BlockPos a=BlockPos.of(t.getLong("a"));
             if (!validRange(a,pos,core)) message(p,"コアを含む512マス以内の範囲を指定してください（各辺16以下）");
-            else { t.putLong("b",pos.asLong()); message(p,"選択中: "+count(t,l)+"。右クリックで反転、コアを右クリックで組み立て"); }
+            else if(t.getBoolean("plant")) {
+                if(l.mayInteract(p,core) && l.getBlockEntity(core) instanceof EngineAnchor anchor){
+                    anchor.setRange(new EnginePlant.Range(a.subtract(core),pos.subtract(core)));message(p,"機関部の範囲を登録しました。次に艦船コアで船体を選択してください");
+                }stack.removeTagKey(EDIT);
+            } else { t.putLong("b",pos.asLong()); message(p,"選択中: "+count(t,l)+"。右クリックで反転、コアを右クリックで組み立て"); }
         } else if (pos.equals(core)) {
             if (assemble((ServerLevel)l,(ServerPlayer)p,t)) stack.removeTagKey(EDIT);
         } else if (inside(t,pos)) {
@@ -92,7 +99,8 @@ public final class ShipWrench extends Item {
                     || !l.mayInteract(p,pos) || MinecraftForge.EVENT_BUS.post(new BlockEvent.BreakEvent(l,pos,state,p))) {
                 message(p,"移動できないブロックです。除外してください: "+pos.toShortString()); return false;
             }
-            parts.add(new Hull.Part(pos.subtract(core),state,1+Math.min(8,hardness)));
+            var range=state.is(ShipParts.PLANT.get()) && l.getBlockEntity(pos) instanceof EngineAnchor anchor?anchor.range:null;
+            parts.add(new Hull.Part(pos.subtract(core),state,1+Math.min(8,hardness),range));
             if (parts.size()>MAX_PARTS) {message(p,"船体は256ブロックまでです");return false;}
         }
         Map<BlockPos,net.minecraft.world.level.block.state.BlockState> cells=new HashMap<>();
@@ -105,7 +113,8 @@ public final class ShipWrench extends Item {
             if(other==null || !other.is(e.getValue().getBlock())) {message(p,"ドアは上下両方を選択してください");return false;}
         }
         var cabin=CabinRooms.level(l);if(cabin==null){message(p,"船室ディメンションがありません");return false;}
-        Hull hull=new Hull(parts); if (hull.engines==0) {message(p,"スラスターを1個以上含めてください");return false;}
+        Hull hull=new Hull(parts); if(hull.plant.error()!=null){message(p,hull.plant.error());return false;}
+        if (hull.engines==0) {message(p,"スラスターを1個以上含めてください");return false;}
         Ship ship=new Ship(ShipParts.SHIP.get(),l); ship.configure(hull,p.getUUID()); ship.setPos(core.getX()+0.5+hull.cx,core.getY()+hull.floor,core.getZ()+0.5+hull.cz);
         if (!l.addFreshEntity(ship)) return false;
         var db=CabinRooms.data(l);var room=db.allocate(a,b,core);ship.roomId=room.id;db.locate(room,ship);

@@ -34,6 +34,9 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     private CabinRooms.Room room() {return roomId==0?null:CabinRooms.data((ServerLevel)level()).get(roomId);}
     private UUID owner;
     private static final EntityDataAccessor<Quaternionf> ROTATION = SynchedEntityData.defineId(Ship.class, EntityDataSerializers.QUATERNION);
+    // 熱と負荷は変化した値だけを同期。負荷の下位2ビットは主砲への供給。
+    private static final EntityDataAccessor<Integer> TEMPERATURE=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.INT),
+            LOAD=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> ENGINE_ON=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> ON_DECK=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Vector3f> FEET=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.VECTOR3);
@@ -70,6 +73,28 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     }
     @Override public double getPassengersRidingOffset() { return localBounds==null?1:localBounds.maxY; }
     public boolean engineOn() {return entityData.get(ENGINE_ON);}
+    public boolean customEngine(){return hull!=null && hull.plant.custom();}
+    public int heat(){return entityData.get(TEMPERATURE)%128;}
+    public boolean derated(){return entityData.get(TEMPERATURE)>=128;}
+    public int output(){return !engineOn() || hull==null?0:customEngine()?hull.plant.generation(derated()):hull.engines;}
+    public int propulsionLoad(){return engineOn()?entityData.get(LOAD)>>2:0;}
+    public int spareOutput(){return Math.max(0,output()-propulsionLoad()-(entityData.get(LOAD)&3));}
+    private int demand(ServerPlayer pilot){
+        if(pilot==null)return 0;
+        return Mth.ceil(hull.engines*(Math.min(1,Math.abs(pilot.zza))+Math.min(1,Math.abs(pilot.xxa))+(pilot.jumping?1:0)));
+    }
+    private float allocatePower(ServerPlayer pilot,long now){
+        if(!customEngine())return 1;
+        int old=entityData.get(LOAD);
+        int temp=hull.plant.nextHeat(heat(),(old>>2)+(old&3));
+        entityData.set(TEMPERATURE,temp+((temp>=100 || derated() && temp>40)?128:0));
+        int gen=output(),requested=demand(pilot);
+        // 60 tickのリチャージのうち先頭10 tickを発射パルスに割り当てる。
+        long remaining=nextShot[ShipWeapon.CANNON.ordinal()]-now;
+        int pulse=remaining>ShipWeapon.CANNON.delay-10?Math.min(gen,MainCannonBlock.REQUIRED_OUTPUT):0;
+        int drive=Math.min(requested,gen-pulse);entityData.set(LOAD,(drive<<2)|pulse);
+        return requested==0?1:(float)drive/requested;
+    }
     boolean ownerWalking() {return entityData.get(ON_DECK);}
     public boolean isOwner(Entity p) {return p.getUUID().equals(owner);}
     private Guest slot(UUID id) {
@@ -154,8 +179,9 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             installed=true;if(!hull.deck.clearMuzzle(part.pos(),local))continue;
             var ammo=net.minecraft.world.item.ItemStack.EMPTY;
             if(w==ShipWeapon.CANNON) {
-                if(hull.engines<MainCannonBlock.REQUIRED_OUTPUT) {
-                    p.displayClientMessage(Component.translatable("hint.astrodock.cannon_power",hull.engines,MainCannonBlock.REQUIRED_OUTPUT),true);return;
+                int available=customEngine()?Math.max(0,output()-demand(p)):hull.engines;
+                if(available<MainCannonBlock.REQUIRED_OUTPUT) {
+                    p.displayClientMessage(Component.translatable("hint.astrodock.cannon_power",available,MainCannonBlock.REQUIRED_OUTPUT),true);return;
                 }
             } else if(!p.getAbilities().instabuild) {
                 ammo=p.getInventory().items.stream().filter(stack->stack.is(w.ammo)).findFirst().orElse(net.minecraft.world.item.ItemStack.EMPTY);
@@ -270,6 +296,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         });
         if(captain==null && ownerWalking()) entityData.set(ON_DECK,false);
         ServerPlayer pilot=engineOn() && !ownerWalking()?captain:null;
+        float supply=allocatePower(pilot,level().getGameTime());
         double altitude=AstroDock.altitude(level(),getY());
         // 接地・無人・静止中は10 tickごとの支持面確認だけにする。
         if (!isVehicle() && onGround() && getDeltaMovement().lengthSqr()==0 && body.momentum.lengthSquared()==0
@@ -280,7 +307,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         if (hull.hasHelm && pilot!=null && pilot.zza!=0 && lateral==0 && !roll)
             yaw=body.helmYaw(hull,getYRot(),pilot.getYRot());
         Vec3 velocity=body.step(hull,getDeltaMovement(),altitude,pilot==null?0:pilot.zza,
-                pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, yaw, roll?lateral:0, pilot!=null && pilot.jumping);
+                pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, yaw, roll?lateral:0, pilot!=null && pilot.jumping,supply);
         boolean rotated=!previous.equals(body.attitude);
         AABB beforeBox=getBoundingBox();
         if (rotated) refreshBounds();
@@ -322,6 +349,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         Vec3 at=passage.position();next.moveTo(at.x,at.y,at.z,next.body.heading(getYRot()),0);
         next.setDeltaMovement(passage.rotate(getDeltaMovement()));
         to.getChunkAt(next.blockPosition());
+        next.entityData.set(TEMPERATURE,entityData.get(TEMPERATURE));next.entityData.set(LOAD,entityData.get(LOAD));
         next.entityData.set(ENGINE_ON,engineOn());
         next.entityData.set(FEET,new Vector3f(entityData.get(FEET)));next.entityData.set(ON_DECK,ownerWalking());
         for(Guest g:GUESTS) {
@@ -386,6 +414,8 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
                     ShipWrench.message(p,"機械データを復元できません。船室の内容は変更していません");return;
                 }
             }
+            for(var pos:local.keySet()) if(local.get(pos).is(ShipParts.PLANT.get()) && l.getBlockEntity(core.offset(pos.rotate(rot))) instanceof EngineAnchor anchor && anchor.range!=null)
+                anchor.setRange(anchor.range.rotate(rot));
             for(var pos:local.keySet()) CabinRooms.erase(cabin,room.core.offset(pos));
             room.walls(cabin,false);CabinRooms.data(l).forget(room);
         }
@@ -395,6 +425,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         discard();ShipWrench.message(p,"船体を再設置しました");
     }
     @Override protected void defineSynchedData() { entityData.define(ROTATION,new Quaternionf());
+        entityData.define(TEMPERATURE,0);entityData.define(LOAD,0);
         entityData.define(ENGINE_ON,true);entityData.define(ON_DECK,false);entityData.define(FEET,new Vector3f());
         for(Guest g:GUESTS) {entityData.define(g.id,Optional.empty());entityData.define(g.feet,new Vector3f());}
     }
@@ -402,7 +433,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     @Override protected void addAdditionalSaveData(CompoundTag t) {
         t.putLongArray("nextShot",nextShot);t.putInt("room",roomId);
         if(hull!=null) t.put("parts",hull.save()); if(owner!=null)t.putUUID("owner",owner);
-        t.putBoolean("engineOn",engineOn());
+        t.putBoolean("engineOn",engineOn());t.putInt("plantHeat",entityData.get(TEMPERATURE));
         if(ownerWalking()) {var feet=entityData.get(FEET);t.putFloat("deckX",feet.x);t.putFloat("deckY",feet.y);t.putFloat("deckZ",feet.z);}
         ListTag guests=new ListTag();
         for(Guest g:GUESTS) entityData.get(g.id).ifPresent(id->{
@@ -431,6 +462,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             body.momentum.set(0,-t.getFloat("spin")*Mth.DEG_TO_RAD,0);
             loaded.inertiaTensor.transform(body.momentum);body.attitude.transform(body.momentum);
         }
+        int temp=t.getInt("plantHeat");entityData.set(TEMPERATURE,temp>=0 && temp<=228 && temp%128<=100?temp:0);
         configure(loaded,t.getUUID("owner"));syncAttitude();
         entityData.set(ENGINE_ON,!t.contains("engineOn") || t.getBoolean("engineOn"));
         var feet=new Vector3f(t.getFloat("deckX"),t.getFloat("deckY"),t.getFloat("deckZ"));
@@ -449,11 +481,17 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     }
     @Override public Packet<ClientGamePacketListener> getAddEntityPacket() { return NetworkHooks.getEntitySpawningPacket(this); }
     @Override public void writeSpawnData(FriendlyByteBuf b) {
-        b.writeUUID(owner);b.writeVarInt(hull.parts.size());for(Hull.Part p:hull.parts){b.writeBlockPos(p.pos());b.writeVarInt(Block.getId(p.state()));b.writeDouble(p.mass());}
+        b.writeUUID(owner);b.writeVarInt(hull.parts.size());for(Hull.Part p:hull.parts){b.writeBlockPos(p.pos());b.writeVarInt(Block.getId(p.state()));b.writeDouble(p.mass());
+            if(p.state().is(ShipParts.PLANT.get())){b.writeBoolean(p.range()!=null);if(p.range()!=null){b.writeBlockPos(p.range().a());b.writeBlockPos(p.range().b());}}
+        }
     }
     @Override public void readSpawnData(FriendlyByteBuf b) {
         UUID captain=b.readUUID();int n=b.readVarInt(); if(n<1 || n>ShipWrench.MAX_PARTS) throw new IllegalArgumentException("船体サイズが不正です");
-        List<Hull.Part> parts=new ArrayList<>();for(int i=0;i<n;i++) parts.add(new Hull.Part(b.readBlockPos(),Block.stateById(b.readVarInt()),b.readDouble()));
+        List<Hull.Part> parts=new ArrayList<>();for(int i=0;i<n;i++) {
+            var pos=b.readBlockPos();var state=Block.stateById(b.readVarInt());double mass=b.readDouble();
+            var range=state.is(ShipParts.PLANT.get()) && b.readBoolean()?new EnginePlant.Range(b.readBlockPos(),b.readBlockPos()):null;
+            parts.add(new Hull.Part(pos,state,mass,range));
+        }
         configure(new Hull(parts),captain);
     }
 }

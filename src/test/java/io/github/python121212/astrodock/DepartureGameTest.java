@@ -39,7 +39,7 @@ public class DepartureGameTest {
         tab.buildContents(new CreativeModeTab.ItemDisplayParameters(test.getLevel().enabledFeatures(),false,test.getLevel().registryAccess()));
         test.assertTrue(tab.getIconItem().is(ShipParts.CORE.get().asItem()),"コアのアイコンがありません");
         test.assertTrue(tab.getDisplayItems().stream().map(ItemStack::getItem).toList().equals(List.of(
-                ShipParts.CORE.get().asItem(),ShipParts.ENGINE.get().asItem(),ShipParts.HELM.get().asItem(),ShipParts.CONSOLE.get().asItem(),ShipParts.AIRLOCK.get().asItem(),ShipParts.HATCH.get().asItem(),ShipParts.CANNON.get().asItem(),ShipParts.MISSILES.get().asItem(),ShipParts.TORPEDOES.get().asItem(),ShipParts.WRENCH.get(),AstroDock.CAPSULE.get())),"造船所の登録内容が不正");
+                ShipParts.CORE.get().asItem(),ShipParts.ENGINE.get().asItem(),ShipParts.HELM.get().asItem(),ShipParts.CONSOLE.get().asItem(),ShipParts.AIRLOCK.get().asItem(),ShipParts.HATCH.get().asItem(),ShipParts.CANNON.get().asItem(),ShipParts.MISSILES.get().asItem(),ShipParts.TORPEDOES.get().asItem(),ShipParts.WRENCH.get(),AstroDock.CAPSULE.get(),ShipParts.PLANT.get().asItem(),ShipParts.DRIVE.get().asItem(),ShipParts.GENERATOR.get().asItem(),ShipParts.COOLER.get().asItem())),"造船所の登録内容が不正");
         com.mojang.logging.LogUtils.getLogger().info("AstroDock shipyard verified");test.succeed();
     }
 }

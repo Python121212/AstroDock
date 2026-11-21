@@ -19,6 +19,9 @@ public final class ShipParts {
     private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, "astrodock");
     private static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES,"astrodock");
     public static final RegistryObject<Block> CORE = part("ship_core", ShipCoreBlock::new), ENGINE = part("thruster", Block::new);
+    public static final RegistryObject<Block> PLANT=part("engine_core",EngineCoreBlock::new), DRIVE=part("power_unit",Block::new),
+            GENERATOR=part("generator",Block::new), COOLER=part("cooling_unit",Block::new);
+    static final RegistryObject<BlockEntityType<EngineAnchor>> ANCHOR=TILES.register("engine_core",()->BlockEntityType.Builder.of(EngineAnchor::new,PLANT.get()).build(null));
     public static final RegistryObject<Block> CONSOLE = part("engine_console", Block::new);
     public static final RegistryObject<Block> HELM = part("helm", HelmBlock::new);
     public static final RegistryObject<Block> AIRLOCK = part("airlock_door", p -> new DoorBlock(p.noOcclusion(), BlockSetType.STONE) {});
@@ -40,6 +43,7 @@ public final class ShipParts {
             .title(Component.translatable("tab.astrodock.shipyard")).icon(() -> new ItemStack(CORE.get()))
             .displayItems((parameters, output) -> {
                 output.accept(CORE.get()); output.accept(ENGINE.get()); output.accept(HELM.get()); output.accept(CONSOLE.get()); output.accept(AIRLOCK.get()); output.accept(HATCH.get()); output.accept(CANNON.get()); output.accept(MISSILES.get()); output.accept(TORPEDOES.get()); output.accept(WRENCH.get()); output.accept(AstroDock.CAPSULE.get());
+                output.accept(PLANT.get());output.accept(DRIVE.get());output.accept(GENERATOR.get());output.accept(COOLER.get());
             }).build());
 
     private static RegistryObject<Block> part(String id, Function<BlockBehaviour.Properties,Block> factory) {

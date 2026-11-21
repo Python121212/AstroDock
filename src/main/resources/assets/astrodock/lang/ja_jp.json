@@ -38,6 +38,11 @@
   "hint.astrodock.no_ammo": "弾薬がありません：%s",
   "hint.astrodock.muzzle_blocked": "射線が船体部品で塞がれています：%s",
   "hint.astrodock.no_mount": "艦に搭載されていません：%s",
-  "hint.astrodock.cannon_power": "主砲の出力不足：スラスター %s / %s 基",
-  "hint.astrodock.cannon_log": "主砲の発射回数：%s ｜ 必要出力：スラスター %s 基"
+  "hint.astrodock.cannon_power": "主砲の出力不足：供給可能 %s / 必要 %s",
+  "hint.astrodock.cannon_log": "主砲の発射回数：%s ｜ 必要出力：%s",
+  "block.astrodock.engine_core": "エンジンコア",
+  "block.astrodock.power_unit": "動力部",
+  "block.astrodock.generator": "発電部",
+  "block.astrodock.cooling_unit": "冷却部",
+  "hud.astrodock.power_grid": "発電 %s ｜ 推進 %s ｜ 余剰 %s ｜ 熱 %s/100"
 }
