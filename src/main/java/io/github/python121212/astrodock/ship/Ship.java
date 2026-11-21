@@ -81,8 +81,11 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
                 && tickCount%10!=0 && !PlanetTravel.approaching(level().dimension(),position())) return;
         boolean roll=pilot!=null && pilot.getOffhandItem().is(ShipParts.WRENCH.get());
         float lateral=pilot==null?0:pilot.xxa;
+        float yaw=roll?0:lateral;
+        if (hull.hasHelm && pilot!=null && pilot.zza!=0 && lateral==0 && !roll)
+            yaw=body.helmYaw(hull,getYRot(),pilot.getYRot());
         Vec3 velocity=body.step(hull,getDeltaMovement(),altitude,pilot==null?0:pilot.zza,
-                pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, roll?0:lateral, roll?lateral:0);
+                pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, yaw, roll?lateral:0, pilot!=null && pilot.jumping);
         boolean rotated=!previous.equals(body.attitude);
         AABB beforeBox=getBoundingBox();
         if (rotated) refreshBounds();

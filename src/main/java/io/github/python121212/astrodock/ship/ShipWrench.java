@@ -42,6 +42,11 @@ public final class ShipWrench extends Item {
         if (!t.getString("dim").equals(l.dimension().location().toString()) || !l.hasChunkAt(core) || !l.getBlockState(core).is(ShipParts.CORE.get())) {
             stack.removeTagKey(EDIT); message(p,"元のコアが見つかりません。設定を解除しました"); return InteractionResult.SUCCESS;
         }
+        if (p.isShiftKeyDown() && pos.equals(core)) {
+            stack.removeTagKey(EDIT);
+            p.displayClientMessage(Component.translatable("hint.astrodock.selection_cleared"),true);
+            return InteractionResult.SUCCESS;
+        }
         if (!t.contains("a")) { t.putLong("a",pos.asLong()); message(p,"対角の2点目を右クリック"); }
         else if (!t.contains("b")) {
             BlockPos a=BlockPos.of(t.getLong("a"));
@@ -83,7 +88,7 @@ public final class ShipWrench extends Item {
             if (!l.hasChunkAt(pos) || !l.getWorldBorder().isWithinBounds(pos)) {message(p,"読み込み済みの範囲内で設定してください");return false;}
             var state=l.getBlockState(pos); if (state.isAir()) continue;
             float hardness=state.getDestroySpeed(l,pos);
-            if (state.hasBlockEntity() || !state.getFluidState().isEmpty() || hardness<0 || !state.isCollisionShapeFullBlock(l,pos)
+            if (state.hasBlockEntity() || !state.getFluidState().isEmpty() || hardness<0 || (!state.is(ShipParts.HELM.get()) && !state.isCollisionShapeFullBlock(l,pos))
                     || !l.mayInteract(p,pos) || MinecraftForge.EVENT_BUS.post(new BlockEvent.BreakEvent(l,pos,state,p))) {
                 message(p,"移動できないブロックです。除外してください: "+pos.toShortString()); return false;
             }
@@ -94,6 +99,6 @@ public final class ShipWrench extends Item {
         Ship ship=new Ship(ShipParts.SHIP.get(),l); ship.configure(hull,p.getUUID()); ship.setPos(core.getX()+0.5+hull.cx,core.getY()+hull.floor,core.getZ()+0.5+hull.cz);
         if (!l.addFreshEntity(ship)) return false;
         for (Hull.Part part:parts) l.setBlock(core.offset(part.pos()),Blocks.AIR.defaultBlockState(),2|16|32);
-        p.startRiding(ship,true); message(p,"組み立て完了。Wで推進、視線の上下で昇降、A/Dで旋回"); return true;
+        p.startRiding(ship,true); message(p,"組み立て完了。Wで推進、ジャンプ長押しで上昇、A/Dで旋回"); return true;
     }
 }
