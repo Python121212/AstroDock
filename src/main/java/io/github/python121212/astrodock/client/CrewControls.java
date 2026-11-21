@@ -15,20 +15,21 @@ import org.lwjgl.glfw.GLFW;
 
 @Mod.EventBusSubscriber(modid="astrodock",value=Dist.CLIENT)
 public final class CrewControls {
-    private static final KeyMapping ENGINE=key("engine",GLFW.GLFW_KEY_G), SEAT=key("seat",GLFW.GLFW_KEY_V);
+    private static final KeyMapping ENGINE=key("engine",GLFW.GLFW_KEY_G), SEAT=key("seat",GLFW.GLFW_KEY_V), CABIN=key("cabin",GLFW.GLFW_KEY_H);
     private static boolean usedPanel;
     private static KeyMapping key(String name,int code) {
         return new KeyMapping("key.astrodock."+name,KeyConflictContext.IN_GAME,InputConstants.Type.KEYSYM,code,"key.categories.astrodock");
     }
     @Mod.EventBusSubscriber(modid="astrodock",value=Dist.CLIENT,bus=Mod.EventBusSubscriber.Bus.MOD)
     public static class Keys {
-        @SubscribeEvent public static void register(RegisterKeyMappingsEvent e){ e.register(ENGINE);e.register(SEAT); }
+        @SubscribeEvent public static void register(RegisterKeyMappingsEvent e){ e.register(ENGINE);e.register(SEAT);e.register(CABIN); }
     }
     @SubscribeEvent public static void input(TickEvent.ClientTickEvent e) {
         if(e.phase!=TickEvent.Phase.END) return;
         var mc=Minecraft.getInstance();
         Ship ship=mc.screen==null && mc.player!=null && mc.player.getVehicle() instanceof Ship s?s:null;
         if(!mc.options.keyUse.isDown() || ship==null) usedPanel=false;
+        while(CABIN.consumeClick()) if(mc.screen==null && mc.player!=null && (ship!=null || mc.player.level().dimension()==CabinRooms.LEVEL)) ShipCommand.send(ship,ShipCommand.Action.CABIN);
         while(ENGINE.consumeClick()) if(ship!=null && ship.isOwner(mc.player)) ShipCommand.send(ship,ShipCommand.Action.ENGINE);
         while(SEAT.consumeClick()) if(ship!=null && ship.isOwner(mc.player)) ShipCommand.send(ship,ShipCommand.Action.SEAT);
     }
