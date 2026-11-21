@@ -14,6 +14,29 @@ import org.joml.Vector3f;
 @PrefixGameTestTemplate(false)
 public class PhysicsGameTest {
     @GameTest(templateNamespace="minecraft", template="igloo/top")
+    public static void gravityController(GameTestHelper test) {
+        var core=new Hull.Part(BlockPos.ZERO,ShipParts.CORE.get().defaultBlockState(),4);
+        var engine=new Hull.Part(BlockPos.ZERO.below(),ShipParts.ENGINE.get().defaultBlockState(),2);
+        var module=new Hull.Part(BlockPos.ZERO.above(),ShipParts.GRAVITY_CONTROLLER.get().defaultBlockState(),1);
+        Hull h=Hull.load(new Hull(List.of(core,engine,module)).save(),test.getLevel());
+        test.assertTrue(h.hasGravityController,"装置がロード後に見つからない");
+        var body=new RigidBody();Vec3 v=Vec3.ZERO;
+        for(int i=0;i<120;i++) v=body.step(h,v,5000,1,0,0,0);
+        test.assertTrue(body.attitude.w>.9999f && v.z>0,"偏心推力で後ろに倒れる、または前進できない");
+        for(int i=0;i<16;i++) body.step(h,v,5000,0,0,1,0);
+        test.assertTrue(Math.abs(body.heading(0))>10,"安定化中に旋回できない");
+        for(int i=0;i<16;i++) body.step(h,v,5000,0,0,0,1);
+        test.assertTrue(body.attitude.transform(new Vector3f(0,1,0)).y<.8f,"手動ロールが効かない");
+        body.attitude.rotateX(1.1f);
+        for(int i=0;i<120;i++) body.step(h,v,5000,0,0,0,0);
+        test.assertTrue(body.attitude.transform(new Vector3f(0,1,0)).y>.999f,"船体が水平に復帰しない");
+        body.momentum.set(.01f,.03f,.02f);var before=new Vector3f(body.momentum);
+        body.step(h,v,5000,0,0,0,0,false,0);
+        test.assertTrue(body.momentum.equals(before),"停止中に角運動量を変更した");
+        com.mojang.logging.LogUtils.getLogger().info("AstroDock inertia control verified");test.succeed();
+    }
+
+    @GameTest(templateNamespace="minecraft", template="igloo/top")
     public static void rigidBodyContinuity(GameTestHelper test) {
         Hull h=new Hull(List.of(new Hull.Part(BlockPos.ZERO,ShipParts.CORE.get().defaultBlockState(),4),
                 new Hull.Part(new BlockPos(0,-1,0),ShipParts.ENGINE.get().defaultBlockState(),2)));

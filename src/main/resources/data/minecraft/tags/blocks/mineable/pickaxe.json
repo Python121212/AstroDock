@@ -13,6 +13,7 @@
     "astrodock:engine_core",
     "astrodock:power_unit",
     "astrodock:generator",
-    "astrodock:cooling_unit"
+    "astrodock:cooling_unit",
+    "astrodock:gravity_controller"
   ]
 }
