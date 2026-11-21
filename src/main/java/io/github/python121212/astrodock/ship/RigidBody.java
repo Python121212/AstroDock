@@ -18,8 +18,11 @@ final class RigidBody {
     }
 
     Vec3 step(Hull h, Vec3 v, double altitude, float throttle, float lookPitch, float yaw, float roll, boolean rising) {
+        return step(h,v,altitude,throttle,lookPitch,yaw,roll,rising,1);
+    }
+    Vec3 step(Hull h, Vec3 v, double altitude, float throttle, float lookPitch, float yaw, float roll, boolean rising,float supply) {
         float air = (float)(1 - Atmosphere.rarefaction(altitude));
-        float thrust = 0.8f * throttle;
+        float thrust = 0.8f * throttle * supply;
         // 地表でも離陸できる偏向推力。機首の仰角を引き、二重に傾けない。
         float noseY = 2 * (attitude.y * attitude.z - attitude.w * attitude.x);
         float pitchError = lookPitch + (float)Math.asin(Mth.clamp(noseY, -1, 1));
@@ -27,12 +30,12 @@ final class RigidBody {
         attitude.transform(tmp.set(0, fy, fz));
         double drag = 1 - 0.055 * air, a = h.engines / h.mass;
         // 垂直推進はワールドの上方向。長押し中は重力に対抗し、機体質量に応じて加速する。
-        double lift=rising && h.engines>0 ? 0.8*a : a*tmp.y-0.035*(1-Atmosphere.gravityLoss(altitude));
+        double lift=rising && supply>0 && h.engines>0 ? 0.8*a*supply : a*tmp.y-0.035*(1-Atmosphere.gravityLoss(altitude));
         double x=v.x*drag+a*tmp.x, y=v.y*drag+lift, z=v.z*drag+a*tmp.z;
         double speed2=x*x+y*y+z*z, limit=speed2>9 ? 3/Math.sqrt(speed2) : 1;
 
         // Σ(r × F) は同じ推力を受けるエンジンの腕の和から一度で求められる。
-        float steering = h.engines * 0.65f;
+        float steering = h.engines * 0.65f * supply;
         tmp.set(h.armY*fz-h.armZ*fy + steering*Math.abs(throttle)*Mth.clamp(pitchError,-1,1),
                 -h.armX*fz + steering*yaw, h.armX*fy + steering*roll);
         attitude.transform(tmp);

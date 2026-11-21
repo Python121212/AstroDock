@@ -10,7 +10,10 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /** 船体は組み立て・ロード時のみ走査し、質量特性とエンジンの腕の長さを集約する。 */
 public final class Hull {
-    public record Part(BlockPos pos, BlockState state, double mass) {}
+    public record Part(BlockPos pos, BlockState state, double mass,EnginePlant.Range range) {
+        public Part(BlockPos pos,BlockState state,double mass){this(pos,state,mass,null);}
+    }
+    final EnginePlant plant;
     public final List<Part> parts;
     public final double mass, cx, cy, cz, radiusX, radiusZ, pivotHeight;
     final float armX, armY, armZ;
@@ -21,6 +24,7 @@ public final class Hull {
     public Hull(List<Part> parts) {
         if (parts.isEmpty() || parts.size() > ShipWrench.MAX_PARTS) throw new IllegalArgumentException("船体サイズが不正です");
         this.parts = List.copyOf(parts);
+        plant=EnginePlant.build(this.parts);
         deck=new CabinDeck(this.parts);
         double m=0, x=0, y=0, z=0;
         int low=Integer.MAX_VALUE, high=Integer.MIN_VALUE;
@@ -47,6 +51,7 @@ public final class Hull {
         ListTag list=new ListTag();
         for (Part p:parts) {
             CompoundTag t=new CompoundTag(); t.putLong("pos",p.pos.asLong()); t.putDouble("mass",p.mass);
+            if(p.range!=null){t.putLong("plantA",p.range.a().asLong());t.putLong("plantB",p.range.b().asLong());}
             t.put("state",NbtUtils.writeBlockState(p.state)); list.add(t);
         }
         return list;
@@ -55,7 +60,8 @@ public final class Hull {
         List<Part> parts=new ArrayList<>();
         for (int i=0;i<list.size();i++) {
             CompoundTag t=list.getCompound(i);
-            parts.add(new Part(BlockPos.of(t.getLong("pos")),NbtUtils.readBlockState(level.holderLookup(Registries.BLOCK), t.getCompound("state")),Math.max(0.25,t.getDouble("mass"))));
+            parts.add(new Part(BlockPos.of(t.getLong("pos")),NbtUtils.readBlockState(level.holderLookup(Registries.BLOCK), t.getCompound("state")),Math.max(0.25,t.getDouble("mass")),
+                    t.contains("plantA")?new EnginePlant.Range(BlockPos.of(t.getLong("plantA")),BlockPos.of(t.getLong("plantB"))):null));
         }
         return new Hull(parts);
     }

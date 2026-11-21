@@ -9,6 +9,10 @@
     "astrodock:exterior_hatch",
     "astrodock:main_cannon",
     "astrodock:missile_launcher",
-    "astrodock:torpedo_tube"
+    "astrodock:torpedo_tube",
+    "astrodock:engine_core",
+    "astrodock:power_unit",
+    "astrodock:generator",
+    "astrodock:cooling_unit"
   ]
 }
