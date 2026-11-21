@@ -131,11 +131,12 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         if(hull==null || !walking(p) || !hasPassenger(p)) return null;
         return aimedPart(p);
     }
-    private BlockState aimedPart(Player p) {
+    private BlockState aimedPart(Player p) {return aimedPart(p,4.5);}
+    private BlockState aimedPart(Player p,double reach) {
         Vector3f eye=p.getEyePosition().subtract(getX(),getY()+hull.pivotHeight,getZ()).toVector3f();
         body.attitude.transformInverse(eye).add((float)(hull.cx+.5),(float)(hull.cy+.5),(float)(hull.cz+.5));
         Vector3f look=body.attitude.transformInverse(p.getLookAngle().toVector3f());
-        return hull.deck.aimedBlock(new Vec3(eye.x,eye.y,eye.z),new Vec3(look.x,look.y,look.z));
+        return hull.deck.aimedBlock(new Vec3(eye.x,eye.y,eye.z),new Vec3(look.x,look.y,look.z),reach);
     }
     public boolean hasPanelInSight(Player p) {
         BlockState b=aimedPanel(p);
@@ -252,15 +253,24 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     }
     @Override public boolean isPickable() { return !isRemoved(); }
     @Override public InteractionResult interact(Player p,InteractionHand hand) {
-        if (level().isClientSide) return InteractionResult.SUCCESS;
-        if (p.isSpectator() || hull==null) return InteractionResult.PASS;
-        if (p.getItemInHand(hand).is(ShipParts.WRENCH.get()) && isOwner(p)) dock((ServerPlayer)p);
-        else if (!p.isPassenger()) {
-            boolean hatch=p.getItemInHand(hand).isEmpty() && roomId!=0 && HullDoors.airlock(aimedPart(p));
-            if(!p.startRiding(this)) p.displayClientMessage(Component.translatable("hint.astrodock.crew_full"),true);
-            else if(hatch && room()!=null) CabinRooms.enter(this,(ServerPlayer)p,room());
+        if (p.isSpectator() || !p.isAlive() || hull==null) return InteractionResult.PASS;
+        if (p.getItemInHand(hand).is(ShipParts.WRENCH.get()) && isOwner(p)) {
+            if(!level().isClientSide)dock((ServerPlayer)p);
+            return InteractionResult.sidedSuccess(level().isClientSide);
         }
-        return InteractionResult.CONSUME;
+        if(hand!=InteractionHand.MAIN_HAND || !p.getItemInHand(hand).isEmpty() || p.isPassenger())return InteractionResult.PASS;
+        // Entityの大きな当たり判定ではなく、地形に遮られる前の最初の船体セルを判定する。
+        Vec3 eye=p.getEyePosition(),end=eye.add(p.getLookAngle().scale(4.5));
+        var obstruction=level().clip(new net.minecraft.world.level.ClipContext(eye,end,net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,p));
+        double reach=obstruction.getType()==HitResult.Type.MISS?4.5:eye.distanceTo(obstruction.getLocation());
+        if(reach<=0 || !HullDoors.airlock(aimedPart(p,reach)))return InteractionResult.PASS;
+        if(!level().isClientSide){
+            var r=room();
+            if(r==null)ShipWrench.message(p,"作業船室がありません。艦を再設置して組み直してください");
+            else if(!canAddPassenger(p))p.displayClientMessage(Component.translatable("hint.astrodock.crew_full"),true);
+            else CabinRooms.enter(this,(ServerPlayer)p,r); // 失敗した場合も操縦席や甲板には乗せない。
+        }
+        return InteractionResult.sidedSuccess(level().isClientSide);
     }
     @Override public void lerpTo(double x,double y,double z,float yaw,float pitch,int count,boolean teleport) {
         tx=x;ty=y;tz=z;targetYaw=yaw;steps=Math.max(1,count);

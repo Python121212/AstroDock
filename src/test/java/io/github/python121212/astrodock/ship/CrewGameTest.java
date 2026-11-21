@@ -51,7 +51,7 @@ public class CrewGameTest {
         parts.set(0,new Hull.Part(BlockPos.ZERO,ShipParts.ENGINE.get().defaultBlockState(),1));
         var ship=new Ship(ShipParts.SHIP.get(),orbit);ship.configure(new Hull(parts),captain.getUUID());
         ship.setPos(290,128,290);orbit.getChunkAt(ship.blockPosition());orbit.addFreshEntity(ship);
-        for(var p:List.of(a,b,c,extra,captain)) ship.interact(p,InteractionHand.MAIN_HAND);
+        for(var p:List.of(a,b,c,extra,captain)) p.startRiding(ship);
         test.assertTrue(ship.getFirstPassenger()==a && captain.getVehicle()==ship && ship.getPassengers().size()==4 && !extra.isPassenger(),"操縦席の予約または定員が不正");
         Vector3f feetB=ship.deckFeet(b),feetA=ship.deckFeet(a);
         test.assertTrue(!feetA.equals(feetB),"乗り口が重なった");
@@ -63,7 +63,7 @@ public class CrewGameTest {
         ship.dock(captain);test.assertTrue(!ship.isRemoved(),"乗員を残して再設置した");
         captain.setPlayerInput(0,0,true,false);ship.tick();test.assertTrue(ship.getDeltaMovement().y>0,"先頭でない所有者が操縦できない");
         b.stopRiding();test.assertTrue(ship.walking(a) && !ship.walking(b),"他の乗員の席も消えた");
-        ship.interact(extra,InteractionHand.MAIN_HAND);test.assertTrue(extra.getVehicle()==ship,"空席が再利用されない");
+        extra.startRiding(ship);test.assertTrue(extra.getVehicle()==ship,"空席が再利用されない");
         ship.command(captain,ShipCommand.Action.SEAT);
         var riders=List.of(captain,a,c,extra);var positions=riders.stream().map(ship::deckFeet).toList();
         var tag=new CompoundTag();ship.addAdditionalSaveData(tag);var restored=new Ship(ShipParts.SHIP.get(),orbit);restored.readAdditionalSaveData(tag);
