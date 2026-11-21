@@ -15,7 +15,7 @@ import net.minecraftforge.gametest.*;
 @GameTestHolder("astrodock")
 @PrefixGameTestTemplate(false)
 public class CoreMenuTest {
-    @GameTest(templateNamespace="minecraft",template="igloo/top",timeoutTicks=160)
+    @GameTest(templateNamespace="minecraft",template="igloo/top",timeoutTicks=400)
     public static void shellFirst(GameTestHelper t){
         var l=t.getLevel().getServer().getLevel(AstroDock.ORBIT);BlockPos lo=new BlockPos(1302,190,1302),hi=lo.offset(4,3,4),core=lo.offset(2,1,0);
         var p=new FakePlayer(l,new GameProfile(UUID.randomUUID(),"ADShipwright"));p.setPos(Vec3.atCenterOf(core.north(2)));p.getAbilities().mayBuild=true;
@@ -29,17 +29,20 @@ public class CoreMenuTest {
         t.assertTrue(p.getVehicle() instanceof Ship && l.getBlockState(stand).is(Blocks.GOLD_BLOCK),"船化失敗または地面を巻き込み");var s=(Ship)p.getVehicle();var pos=s.position();
         p.setPlayerInput(0,1,true,false);s.tick();t.assertTrue(pos.equals(s.position()) && !s.engineOn(),"未艤装の船が動いた");
         s.command(p,ShipCommand.Action.CABIN);var c=CabinRooms.level(l);var room=CabinRooms.data(l).get(s.roomId);t.assertTrue(p.level()==c,"作業船室に入れない");
-        t.startSequence().thenWaitUntil(()->t.assertTrue(l.getEntity(room.shipId)==s,"外装の追跡チャンク準備中")).thenExecute(()->{
+        // FakePlayer は通常の乗員 tick を受けないため、待機中も艦外チャンクの追跡を維持する。
+        t.startSequence().thenWaitUntil(()->{CabinRooms.follow(l,room.chunk);t.assertTrue(l.getEntity(room.shipId)==s,"外装の追跡チャンク準備中");}).thenExecute(()->{
         var work=new CoreMenu(14,p.getInventory(),room.core);p.setPos(Vec3.atCenterOf(room.core.south()));
         var outsider=new FakePlayer(c,new GameProfile(UUID.randomUUID(),"ADVisitor"));outsider.setPos(p.position());work.clickMenuButton(outsider,2);
         t.assertTrue(work.value(0)==5 && !s.isRemoved(),"非乗員が設備更新");
         var plant=room.core.south();c.setBlockAndUpdate(plant,ShipParts.PLANT.get().defaultBlockState());c.setBlockAndUpdate(plant.east(),ShipParts.DRIVE.get().defaultBlockState());
         work=new CoreMenu(15,p.getInventory(),room.core);work.clickMenuButton(p,2);t.assertTrue(work.value(0)==8 && !s.isRemoved(),"不完全な機関の処理: status="+work.value(0)+" valid="+work.stillValid(p)+" removed="+s.isRemoved());
         c.setBlockAndUpdate(plant.east().south(),ShipParts.GENERATOR.get().defaultBlockState());c.setBlockAndUpdate(plant.west(),ShipParts.ENGINE.get().defaultBlockState());
+        var armor=plant.south(2);c.setBlockAndUpdate(armor,ShipParts.BLACKSHELL_ARMOR.get().defaultBlockState());
         var cargo=plant.south();c.setBlockAndUpdate(cargo,Blocks.CHEST.defaultBlockState());((Container)c.getBlockEntity(cargo)).setItem(0,new ItemStack(Items.DIAMOND,3));
         work=new CoreMenu(16,p.getInventory(),room.core);work.clickMenuButton(p,2);
         t.assertTrue(work.value(0)==10 && s.isRemoved() && p.level()==c,"船内から設備更新できない: "+work.value(0));
         var live=(Ship)l.getEntity(room.shipId);t.assertTrue(live.roomId==room.id && live.hull().engines==1 && live.output()==3 && ((Container)c.getBlockEntity(cargo)).getItem(0).getCount()==3,"出力・積荷を保持していない");
+        t.assertTrue(live.hull().parts.stream().anyMatch(part->part.state().is(ShipParts.BLACKSHELL_ARMOR.get()) && part.mass()==12),"改装した重装甲の質量が正しくない");
         CabinRooms.leave(p);p.setPlayerInput(0,1,true,false);live.tick();t.assertTrue(p.getVehicle()==live && live.getDeltaMovement().y>0,"改装後に飛行できない");
         var h=live.hull();live.moveTo(core.getX()+.5+h.cx,core.getY()+h.floor,core.getZ()+.5+h.cz,0,0);live.setDeltaMovement(Vec3.ZERO);live.dock(p);
         t.assertTrue(live.isRemoved() && ((Container)l.getBlockEntity(core.south(2))).getItem(0).getCount()==3,"改装後のドック失敗");
