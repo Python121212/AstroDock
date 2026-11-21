@@ -19,7 +19,7 @@ public final class ShipShot extends ThrowableItemProjectile {
     private ShipWeapon weapon() {
         return getType()==ShipParts.TORPEDO.get()?ShipWeapon.TORPEDO:getType()==ShipParts.MISSILE.get()?ShipWeapon.MISSILE:ShipWeapon.CANNON;
     }
-    @Override protected Item getDefaultItem(){return weapon().ammo;}
+    @Override protected Item getDefaultItem(){return weapon()==ShipWeapon.CANNON?net.minecraft.world.item.Items.HEART_OF_THE_SEA:weapon().ammo;}
     @Override protected float getGravity(){return 0;}
     @Override public boolean canChangeDimensions(){return false;}
     void launch(Ship ship,ServerPlayer p,Vec3 origin,Vec3 aim) {

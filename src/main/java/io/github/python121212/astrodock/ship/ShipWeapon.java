@@ -9,7 +9,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 /** 数値は Minecraft のブロック・tick・ダメージ点。 */
 enum ShipWeapon {
-    CANNON(ShipParts.CANNON,ShipParts.SHELL,Items.IRON_NUGGET,3.2,30,12,8,ParticleTypes.CRIT,SoundEvents.FIREWORK_ROCKET_BLAST),
+    CANNON(ShipParts.CANNON,ShipParts.SHELL,null,3.2,30,60,8,ParticleTypes.ELECTRIC_SPARK,SoundEvents.BEACON_POWER_SELECT),
     MISSILE(ShipParts.MISSILES,ShipParts.MISSILE,Items.FIREWORK_ROCKET,1.4,70,45,10,ParticleTypes.FIREWORK,SoundEvents.FIREWORK_ROCKET_LAUNCH),
     TORPEDO(ShipParts.TORPEDOES,ShipParts.TORPEDO,Items.PRISMARINE_CRYSTALS,.9,100,60,14,ParticleTypes.END_ROD,SoundEvents.TRIDENT_THROW);
     final RegistryObject<Block> mount;

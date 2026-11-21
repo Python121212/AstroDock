@@ -116,7 +116,12 @@ public final class ShipWrench extends Item {
             for(var placed:parts)CabinRooms.erase(cabin,room.core.offset(placed.pos()));
             room.walls(cabin,false);db.forget(room);ship.discard();message(p,"この部品は船室へ移せません。元の船体は変更していません");return false;
         }
-        for(var part:parts) CabinRooms.erase(l,core.offset(part.pos()));
+        for(var part:parts) {
+            var pos=core.offset(part.pos());
+            if(part.state().is(ShipParts.CANNON.get()) && l.getBlockEntity(pos) instanceof CannonMount mount)
+                ship.restoreCannonCooldown(mount.readyAt());
+            CabinRooms.erase(l,pos);
+        }
         for(var part:parts) {
             l.updateNeighborsAt(core.offset(part.pos()),Blocks.AIR);
             cabin.updateNeighborsAt(room.core.offset(part.pos()),part.state().getBlock());

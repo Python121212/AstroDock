@@ -26,16 +26,18 @@
   "block.astrodock.airlock_door": "艦外ドア",
   "block.astrodock.exterior_hatch": "艦外トラップドア",
   "key.astrodock.cabin": "作業船室に入る／戻る",
-  "block.astrodock.main_cannon": "主砲",
+  "block.astrodock.main_cannon": "41cm三連装エネルギー主砲",
   "block.astrodock.missile_launcher": "ミサイル発射機",
   "block.astrodock.torpedo_tube": "魚雷発射管",
   "key.astrodock.cannon": "主砲を撃つ",
   "key.astrodock.missile": "ミサイルを撃つ",
   "key.astrodock.torpedo": "魚雷を撃つ",
-  "entity.astrodock.cannon_shot": "主砲弾",
+  "entity.astrodock.cannon_shot": "主砲エネルギー弾",
   "entity.astrodock.missile": "ミサイル",
   "entity.astrodock.torpedo": "魚雷",
   "hint.astrodock.no_ammo": "弾薬がありません：%s",
   "hint.astrodock.muzzle_blocked": "射線が船体部品で塞がれています：%s",
-  "hint.astrodock.no_mount": "艦に搭載されていません：%s"
+  "hint.astrodock.no_mount": "艦に搭載されていません：%s",
+  "hint.astrodock.cannon_power": "主砲の出力不足：スラスター %s / %s 基",
+  "hint.astrodock.cannon_log": "主砲の発射回数：%s ｜ 必要出力：スラスター %s 基"
 }
