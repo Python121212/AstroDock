@@ -73,13 +73,19 @@ public final class FlightEvents {
     static boolean crossBoundary(ServerPlayer p) {
         var passage = PlanetTravel.at(p.level().dimension(), p.position());
         if (passage == null) {
-            if (PlanetTravel.approaching(p.level().dimension(), p.position())) {
+            if (PlanetTravel.approaching(p.level().dimension(), p.position()) || OrbitArrival.nearLaunch(p.level().dimension(),p.getY())) {
+                Sample prior=approach.get(p);
+                if(prior!=null && prior.level==p.level() && prior.position.y<p.getY()) OrbitArrival.prefetch(p.serverLevel(),p.position(),p.tickCount);
                 approach.put(p, new Sample(p.level(), p.position(), p.tickCount));
             } else if (!approach.isEmpty()) approach.remove(p);
             return false;
         }
         ServerLevel dest = p.serverLevel().getServer().getLevel(passage.dimension());
         if (dest == null) return false;
+        if(dest.dimension()==AstroDock.ORBIT && !OrbitArrival.ready(dest,passage.position())) {
+            approach.put(p,new Sample(p.level(),p.position(),p.tickCount));
+            return false;
+        }
         Vec3 velocity = p.getDeltaMovement();
         // サーバー上のプレイヤー速度はクライアントの飛行入力を含まないため、
         // 境界直前に受信した移動量を優先する。コマンドでの長距離転移は除外。
