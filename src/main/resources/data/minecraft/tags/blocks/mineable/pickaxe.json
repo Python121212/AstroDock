@@ -3,6 +3,7 @@
   "values": [
     "astrodock:ship_core",
     "astrodock:thruster",
-    "astrodock:helm"
+    "astrodock:helm",
+    "astrodock:engine_console"
   ]
 }

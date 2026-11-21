@@ -15,11 +15,13 @@ public final class Hull {
     public final double mass, cx, cy, cz, radiusX, radiusZ, pivotHeight;
     final float armX, armY, armZ;
     final Matrix3f inertiaTensor, inverseInertia;
+    final CabinDeck deck;
     public final boolean hasHelm;
     public final int engines, floor, height;
     public Hull(List<Part> parts) {
         if (parts.isEmpty() || parts.size() > ShipWrench.MAX_PARTS) throw new IllegalArgumentException("船体サイズが不正です");
         this.parts = List.copyOf(parts);
+        deck=new CabinDeck(this.parts);
         double m=0, x=0, y=0, z=0;
         int low=Integer.MAX_VALUE, high=Integer.MIN_VALUE;
         for (Part p : parts) {

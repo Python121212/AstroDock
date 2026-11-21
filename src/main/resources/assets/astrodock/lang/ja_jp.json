@@ -10,5 +10,14 @@
   "tab.astrodock.shipyard": "AstroDock：造船所",
   "hint.astrodock.ship_core": "艦船レンチでコアを右クリックし、船体範囲を指定してください",
   "block.astrodock.helm": "操縦桿",
-  "hint.astrodock.selection_cleared": "範囲選択を解除しました"
+  "hint.astrodock.selection_cleared": "範囲選択を解除しました",
+  "block.astrodock.engine_console": "エンジン制御盤",
+  "key.categories.astrodock": "AstroDock",
+  "key.astrodock.engine": "主機を起動／停止",
+  "key.astrodock.seat": "操縦席を離れる／戻る",
+  "hud.astrodock.engine_on": "主機：運転中",
+  "hud.astrodock.engine_off": "主機：停止",
+  "hud.astrodock.at_helm": "操縦席 ｜ %s",
+  "hud.astrodock.on_deck": "艦内歩行 ｜ %s",
+  "hint.astrodock.no_deck": "立てる床がありません（床上に2ブロックの空間が必要です）"
 }

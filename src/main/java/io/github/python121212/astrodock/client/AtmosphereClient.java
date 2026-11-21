@@ -111,6 +111,10 @@ public final class AtmosphereClient {
         } else if (p.level().dimension()==AstroDock.RUBRA) {
             e.getGuiGraphics().drawString(mc.font,Component.translatable("hud.astrodock.rubra_surface"),8,20,0xffb98e);
         }
+        if (p.getVehicle() instanceof io.github.python121212.astrodock.ship.Ship ship) {
+            var status=Component.translatable(ship.engineOn()?"hud.astrodock.engine_on":"hud.astrodock.engine_off");
+            e.getGuiGraphics().drawString(mc.font,Component.translatable(ship.walking()?"hud.astrodock.on_deck":"hud.astrodock.at_helm",status),8,32,0xe2f4fc);
+        }
         if (y >= 200) e.getGuiGraphics().drawString(mc.font, Component.translatable("hud.astrodock.altitude", (long)Math.floor(y)), 8, 8, 0xdce8ff);
     }
 }

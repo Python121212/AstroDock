@@ -10,5 +10,14 @@
   "tab.astrodock.shipyard": "AstroDock: Shipyard",
   "hint.astrodock.ship_core": "Use the ship wrench on this core to select the hull.",
   "block.astrodock.helm": "Flight Stick",
-  "hint.astrodock.selection_cleared": "Hull selection cleared"
+  "hint.astrodock.selection_cleared": "Hull selection cleared",
+  "block.astrodock.engine_console": "Engine Console",
+  "key.categories.astrodock": "AstroDock",
+  "key.astrodock.engine": "Toggle main engine",
+  "key.astrodock.seat": "Leave / return to helm",
+  "hud.astrodock.engine_on": "Engine: ON",
+  "hud.astrodock.engine_off": "Engine: OFF",
+  "hud.astrodock.at_helm": "Helm | %s",
+  "hud.astrodock.on_deck": "On deck | %s",
+  "hint.astrodock.no_deck": "No standing room (leave two blocks of headroom above a floor)"
 }
