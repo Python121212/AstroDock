@@ -34,7 +34,7 @@ public final class CrewControls {
     }
     @SubscribeEvent public static void use(InputEvent.InteractionKeyMappingTriggered e) {
         var p=Minecraft.getInstance().player;
-        if(!e.isUseItem() || p==null || !(p.getVehicle() instanceof Ship ship) || !ship.walking()) return;
+        if(!e.isUseItem() || p==null || !(p.getVehicle() instanceof Ship ship) || !ship.walking(p)) return;
         // 船体はワールドのブロックではない。艦内の右クリックを船外のブロックに通さない。
         e.setCanceled(true); e.setSwingHand(false);
         if(e.getHand()==InteractionHand.MAIN_HAND && !usedPanel && ship.hasPanelInSight(p)) {

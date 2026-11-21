@@ -30,10 +30,10 @@ public class PhysicsGameTest {
         Ship ship=new Ship(ShipParts.SHIP.get(),orbit);ship.body.copyFrom(body);
         UUID owner=UUID.randomUUID();ship.configure(h,owner);ship.moveTo(256,-0.25,272,body.heading(0),0);
         Vec3 velocity=new Vec3(0.12,-0.2,-0.14);ship.setDeltaMovement(velocity);
-        var out=ship.crossBoundary(orbit,null);
+        var out=ship.crossBoundary(orbit);
         test.assertTrue(out!=null && out.getY()==4999.75 && ship.isRemoved(),"降下時の境界移動に失敗");
         out.setPos(out.getX(),5000.25,out.getZ());
-        var back=out.crossBoundary(test.getLevel().getServer().overworld(),null);
+        var back=out.crossBoundary(test.getLevel().getServer().overworld());
         test.assertTrue(back!=null && back.level()==orbit && back.getY()==0.25 && out.isRemoved(),"宇宙への再突入に失敗");
         test.assertTrue(back.body.attitude.equals(body.attitude) && back.body.momentum.equals(original) && back.getDeltaMovement().equals(velocity),"往復で運動状態が失われた");
         for(var part:h.parts) for(int i=0;i<8;i++) {
