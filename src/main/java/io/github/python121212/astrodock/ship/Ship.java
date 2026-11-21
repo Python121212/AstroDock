@@ -374,7 +374,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         if(isRemoved() || !isOwner(p) || r.id!=roomId || CabinRooms.visitedCore(p,r.core)!=r)return 5;
         if(isVehicle())return 7;
         var cabin=p.serverLevel();var cells=r.cells(cabin);
-        if(!cabin.getBlockState(r.core).is(ShipParts.CORE.get()) || cells.size()>ShipWrench.MAX_PARTS || HullDoors.exposed(cells,r.lo,r.hi)!=null)return 8;
+        if(!cabin.getBlockState(r.core).is(ShipParts.CORE.get()) || cells.size()>ShipWrench.MAX_PARTS || HullDoors.exposed(cells,r.lo,r.hi)!=null || !HullDoors.completePairs(cells))return 8;
         var parts=new ArrayList<Hull.Part>();long ready=0;
         for(var e:cells.entrySet()){
             var pos=e.getKey();var state=e.getValue();float strength=state.getDestroySpeed(cabin,pos);

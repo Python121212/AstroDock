@@ -26,6 +26,7 @@ public final class CoreMenu extends AbstractContainerMenu {
             var room=CabinRooms.visitedCore(p,core);
             if(room==null){info.set(0,5);return false;}
             var dest=p.serverLevel().getServer().getLevel(room.dimension);
+            if(dest!=null)CabinRooms.follow(dest,room.chunk);
             if(dest==null || !(dest.getEntity(room.shipId) instanceof Ship ship)){info.set(0,6);return false;}
             if(!ship.isOwner(p)){info.set(0,5);return false;}
             info.set(0,ship.refit(p,room));return true;

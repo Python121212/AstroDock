@@ -12,6 +12,13 @@ final class HullDoors {
         return !airlock(s) &&
                 (s.getBlock() instanceof DoorBlock || s.getBlock() instanceof TrapDoorBlock || s.is(BlockTags.DOORS) || s.is(BlockTags.TRAPDOORS));
     }
+    static boolean completePairs(Map<BlockPos,BlockState> cells){
+        for(var entry:cells.entrySet())if(entry.getValue().getBlock() instanceof DoorBlock){
+            var half=entry.getValue().getValue(DoorBlock.HALF);
+            var other=cells.get(half==net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER?entry.getKey().above():entry.getKey().below());
+            if(other==null || !other.is(entry.getValue().getBlock()) || other.getValue(DoorBlock.HALF)==half)return false;
+        }return true;
+    }
     // 部品を閉じたセルとして扱い、外から空セルを塗る。凹んだ外壁も検出する。
     static BlockPos exposed(Map<BlockPos,BlockState> cells, BlockPos min, BlockPos max) {
         if(cells.values().stream().noneMatch(HullDoors::ordinary)) return null;

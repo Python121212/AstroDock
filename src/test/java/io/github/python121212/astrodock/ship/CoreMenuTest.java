@@ -29,11 +29,12 @@ public class CoreMenuTest {
         t.assertTrue(p.getVehicle() instanceof Ship && l.getBlockState(stand).is(Blocks.GOLD_BLOCK),"船化失敗または地面を巻き込み");var s=(Ship)p.getVehicle();var pos=s.position();
         p.setPlayerInput(0,1,true,false);s.tick();t.assertTrue(pos.equals(s.position()) && !s.engineOn(),"未艤装の船が動いた");
         s.command(p,ShipCommand.Action.CABIN);var c=CabinRooms.level(l);var room=CabinRooms.data(l).get(s.roomId);t.assertTrue(p.level()==c,"作業船室に入れない");
+        t.startSequence().thenWaitUntil(()->t.assertTrue(l.getEntity(room.shipId)==s,"外装の追跡チャンク準備中")).thenExecute(()->{
         var work=new CoreMenu(14,p.getInventory(),room.core);p.setPos(Vec3.atCenterOf(room.core.south()));
         var outsider=new FakePlayer(c,new GameProfile(UUID.randomUUID(),"ADVisitor"));outsider.setPos(p.position());work.clickMenuButton(outsider,2);
         t.assertTrue(work.value(0)==5 && !s.isRemoved(),"非乗員が設備更新");
         var plant=room.core.south();c.setBlockAndUpdate(plant,ShipParts.PLANT.get().defaultBlockState());c.setBlockAndUpdate(plant.east(),ShipParts.DRIVE.get().defaultBlockState());
-        work=new CoreMenu(15,p.getInventory(),room.core);work.clickMenuButton(p,2);t.assertTrue(work.value(0)==8 && !s.isRemoved(),"不完全な機関で旧船を破棄");
+        work=new CoreMenu(15,p.getInventory(),room.core);work.clickMenuButton(p,2);t.assertTrue(work.value(0)==8 && !s.isRemoved(),"不完全な機関の処理: status="+work.value(0)+" valid="+work.stillValid(p)+" removed="+s.isRemoved());
         c.setBlockAndUpdate(plant.east().south(),ShipParts.GENERATOR.get().defaultBlockState());c.setBlockAndUpdate(plant.west(),ShipParts.ENGINE.get().defaultBlockState());
         var cargo=plant.south();c.setBlockAndUpdate(cargo,Blocks.CHEST.defaultBlockState());((Container)c.getBlockEntity(cargo)).setItem(0,new ItemStack(Items.DIAMOND,3));
         work=new CoreMenu(16,p.getInventory(),room.core);work.clickMenuButton(p,2);
@@ -43,6 +44,7 @@ public class CoreMenuTest {
         var h=live.hull();live.moveTo(core.getX()+.5+h.cx,core.getY()+h.floor,core.getZ()+.5+h.cz,0,0);live.setDeltaMovement(Vec3.ZERO);live.dock(p);
         t.assertTrue(live.isRemoved() && ((Container)l.getBlockEntity(core.south(2))).getItem(0).getCount()==3,"改装後のドック失敗");
         for(var n:BlockPos.betweenClosed(lo,hi))CabinRooms.erase(l,n);l.removeBlock(stand,false);
-        com.mojang.logging.LogUtils.getLogger().info("AstroDock shell first verified");t.succeed();
+        com.mojang.logging.LogUtils.getLogger().info("AstroDock shell first verified");
+        }).thenSucceed();
     }
 }

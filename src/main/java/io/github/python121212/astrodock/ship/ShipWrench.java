@@ -109,11 +109,7 @@ public final class ShipWrench extends Item {
         for(var part:parts) cells.put(core.offset(part.pos()),part.state());
         var exposed=HullDoors.exposed(cells,CabinRooms.min(a,b),CabinRooms.max(a,b));
         if(exposed!=null) {message(p,"外壁には艦外ドアまたは艦外トラップドアを使用してください: "+exposed.toShortString());return false;}
-        for(var e:cells.entrySet()) if(e.getValue().getBlock() instanceof net.minecraft.world.level.block.DoorBlock) {
-            boolean lower=e.getValue().getValue(net.minecraft.world.level.block.DoorBlock.HALF)==net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER;
-            var other=cells.get(lower?e.getKey().above():e.getKey().below());
-            if(other==null || !other.is(e.getValue().getBlock())) {message(p,"ドアは上下両方を選択してください");return false;}
-        }
+        if(!HullDoors.completePairs(cells)){message(p,"ドアは上下両方を選択してください");return false;}
         var cabin=CabinRooms.level(l);if(cabin==null){message(p,"船室ディメンションがありません");return false;}
         Hull hull=new Hull(parts); if(hull.plant.error()!=null){message(p,hull.plant.error());return false;}
 
