@@ -29,10 +29,12 @@ public final class ShipWrench extends Item {
     static void message(Player p,String s) { p.displayClientMessage(Component.literal(s),true); }
     @Override public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext c) {
         Player p=c.getPlayer(); Level l=c.getLevel(); BlockPos pos=c.getClickedPos();
-        if (p==null || p.isSpectator() || !p.getAbilities().mayBuild || !AstroDock.supported(l)) return InteractionResult.PASS;
+        if (p==null || p.isSpectator() || !p.getAbilities().mayBuild || !(AstroDock.supported(l) || l.dimension()==CabinRooms.LEVEL)) return InteractionResult.PASS;
         if (p.getVehicle() instanceof Ship ship) { if (!l.isClientSide) ship.dock((ServerPlayer)p); return InteractionResult.SUCCESS; }
         CompoundTag t=stack.getTagElement(EDIT);
         boolean plant=l.getBlockState(pos).is(ShipParts.PLANT.get());
+        // 船室内では機関範囲だけを設定可能。艦を入れ子にしない。
+        if(l.dimension()==CabinRooms.LEVEL && !(t==null?plant:t.getBoolean("plant")))return InteractionResult.PASS;
         if (t==null && !plant && !l.getBlockState(pos).is(ShipParts.CORE.get())) return InteractionResult.PASS;
         if (l.isClientSide) return InteractionResult.SUCCESS;
         if (t==null) {
