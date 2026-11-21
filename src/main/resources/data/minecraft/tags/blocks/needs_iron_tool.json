@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "astrodock:blackshell_ore",
+    "astrodock:laminated_armor",
+    "astrodock:blackshell_armor"
+  ]
+}

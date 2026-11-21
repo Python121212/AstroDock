@@ -102,7 +102,7 @@ public final class ShipWrench extends Item {
                 message(p,"移動できないブロックです。除外してください: "+pos.toShortString()); return false;
             }
             var range=state.is(ShipParts.PLANT.get()) && l.getBlockEntity(pos) instanceof EngineAnchor anchor?anchor.range:null;
-            parts.add(new Hull.Part(pos.subtract(core),state,1+Math.min(8,hardness),range));
+            parts.add(new Hull.Part(pos.subtract(core),state,Hull.partMass(state,hardness),range));
             if (parts.size()>MAX_PARTS) {message(p,"船体は256ブロックまでです");return false;}
         }
         Map<BlockPos,net.minecraft.world.level.block.state.BlockState> cells=new HashMap<>();

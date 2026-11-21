@@ -14,6 +14,10 @@
     "astrodock:power_unit",
     "astrodock:generator",
     "astrodock:cooling_unit",
-    "astrodock:gravity_controller"
+    "astrodock:gravity_controller",
+    "astrodock:stratasteel_ore",
+    "astrodock:blackshell_ore",
+    "astrodock:laminated_armor",
+    "astrodock:blackshell_armor"
   ]
 }

@@ -437,7 +437,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             var pos=e.getKey();var state=e.getValue();float strength=state.getDestroySpeed(cabin,pos);
             if(strength<0 || state.is(ShipParts.CORE.get()) && !pos.equals(r.core))return 8;
             var tile=cabin.getBlockEntity(pos);var range=tile instanceof EngineAnchor anchor?anchor.range:null;
-            parts.add(new Hull.Part(pos.subtract(r.core),state,1+Math.min(8,strength),range));
+            parts.add(new Hull.Part(pos.subtract(r.core),state,Hull.partMass(state,strength),range));
             if(tile instanceof CannonMount mount)ready=Math.max(ready,mount.readyAt());
         }
         Hull h=new Hull(parts);if(h.plant.error()!=null){ShipWrench.message(p,h.plant.error());return 8;}
