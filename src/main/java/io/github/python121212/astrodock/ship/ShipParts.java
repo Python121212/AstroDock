@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -16,12 +17,15 @@ public final class ShipParts {
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, "astrodock");
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, "astrodock");
     private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, "astrodock");
+    private static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES,"astrodock");
     public static final RegistryObject<Block> CORE = part("ship_core", ShipCoreBlock::new), ENGINE = part("thruster", Block::new);
     public static final RegistryObject<Block> CONSOLE = part("engine_console", Block::new);
     public static final RegistryObject<Block> HELM = part("helm", HelmBlock::new);
     public static final RegistryObject<Block> AIRLOCK = part("airlock_door", p -> new DoorBlock(p.noOcclusion(), BlockSetType.STONE) {});
     public static final RegistryObject<Block> HATCH = part("exterior_hatch", p -> new TrapDoorBlock(p.noOcclusion(), BlockSetType.STONE) {});
-    public static final RegistryObject<Block> CANNON = part("main_cannon", Block::new), MISSILES = part("missile_launcher", Block::new), TORPEDOES = part("torpedo_tube", Block::new);
+    public static final RegistryObject<Block> CANNON = part("main_cannon", MainCannonBlock::new), MISSILES = part("missile_launcher", Block::new), TORPEDOES = part("torpedo_tube", Block::new);
+    public static final RegistryObject<BlockEntityType<CannonMount>> CANNON_MOUNT=TILES.register("main_cannon",()->
+            BlockEntityType.Builder.of(CannonMount::new,CANNON.get()).build(null));
     public static final RegistryObject<EntityType<ShipShot>> SHELL = shot("cannon_shot"), MISSILE = shot("missile"), TORPEDO = shot("torpedo");
     private static RegistryObject<EntityType<ShipShot>> shot(String id) {
         return ENTITIES.register(id, () -> EntityType.Builder.<ShipShot>of(ShipShot::new,MobCategory.MISC)
@@ -43,5 +47,5 @@ public final class ShipParts {
         ITEMS.register(id, () -> block.get() instanceof DoorBlock ? new DoubleHighBlockItem(block.get(), new Item.Properties()) : new BlockItem(block.get(), new Item.Properties()));
         return block;
     }
-    public static void register(IEventBus bus) { BLOCKS.register(bus); ITEMS.register(bus); ENTITIES.register(bus); TABS.register(bus); }
+    public static void register(IEventBus bus) { BLOCKS.register(bus); ITEMS.register(bus); ENTITIES.register(bus); TILES.register(bus); TABS.register(bus); }
 }

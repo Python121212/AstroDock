@@ -28,6 +28,8 @@ public class ArmamentGameTest {
         FakePlayer p=new FakePlayer(l,new GameProfile(UUID.randomUUID(),"ADGunner")),guest=new FakePlayer(l,new GameProfile(UUID.randomUUID(),"ADNotGunner"));
         Ship s=new Ship(ShipParts.SHIP.get(),l);s.configure(new Hull(List.of(
                 new Hull.Part(BlockPos.ZERO,ShipParts.CANNON.get().defaultBlockState(),1),
+                new Hull.Part(new BlockPos(1,0,-1),ShipParts.ENGINE.get().defaultBlockState(),1),
+                new Hull.Part(new BlockPos(3,0,1),ShipParts.ENGINE.get().defaultBlockState(),1),
                 new Hull.Part(new BlockPos(2,0,0),ShipParts.MISSILES.get().defaultBlockState(),1),
                 new Hull.Part(new BlockPos(4,0,0),ShipParts.TORPEDOES.get().defaultBlockState(),1))),p.getUUID());
         s.setPos(Vec3.atBottomCenterOf(base.east(2)));l.addFreshEntity(s);p.startRiding(s,true);guest.startRiding(s,true);s.positionRider(p);p.setYRot(0);p.setXRot(0);
@@ -46,7 +48,7 @@ public class ArmamentGameTest {
             if(w==ShipWeapon.MISSILE)cow.setPos(cow.position().add(2,0,0)); // 発射時に照準した相手だけを追尾
             flight(shots.get(0),26);t.assertTrue(shots.get(0).isRemoved() && cow.getHealth()<hp,"宇宙で命中しない: "+w);cow.discard();
         }
-        t.assertTrue(iron.getCount()==1 && rocket.isEmpty() && crystal.getCount()==1,"1発ごとの消費量が不正");
+        t.assertTrue(iron.getCount()==2 && rocket.isEmpty() && crystal.getCount()==1,"1発ごとの消費量が不正");
         // 水中から発射し、壁で停止。地形や遮蔽裏の Mob に影響しない。
         var start=base.east(4);var wall=start.south(4);l.setBlock(wall,Blocks.STONE.defaultBlockState(),2);l.setBlock(start.south(),Blocks.WATER.defaultBlockState(),2);
         Cow cover=target(l,Vec3.atBottomCenterOf(wall.south(2)));float hp=cover.getHealth();

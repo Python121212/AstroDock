@@ -1,7 +1,19 @@
 {
   "variants": {
-    "": {
+    "facing=north": {
       "model": "astrodock:block/main_cannon"
+    },
+    "facing=east": {
+      "model": "astrodock:block/main_cannon",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "astrodock:block/main_cannon",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "astrodock:block/main_cannon",
+      "y": 270
     }
   }
 }

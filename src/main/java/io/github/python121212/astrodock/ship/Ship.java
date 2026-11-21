@@ -152,9 +152,14 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         Vec3 local=new Vec3(dir.x,dir.y,dir.z);boolean installed=false;
         for(var part:hull.parts) if(part.state().is(w.mount.get())) {
             installed=true;if(!hull.deck.clearMuzzle(part.pos(),local))continue;
-            var ammo=p.getInventory().items.stream().filter(stack->stack.is(w.ammo)).findFirst();
-            if(!p.getAbilities().instabuild && ammo.isEmpty()) {
-                p.displayClientMessage(Component.translatable("hint.astrodock.no_ammo",w.ammo.getDescription()),true);return;
+            var ammo=net.minecraft.world.item.ItemStack.EMPTY;
+            if(w==ShipWeapon.CANNON) {
+                if(hull.engines<MainCannonBlock.REQUIRED_OUTPUT) {
+                    p.displayClientMessage(Component.translatable("hint.astrodock.cannon_power",hull.engines,MainCannonBlock.REQUIRED_OUTPUT),true);return;
+                }
+            } else if(!p.getAbilities().instabuild) {
+                ammo=p.getInventory().items.stream().filter(stack->stack.is(w.ammo)).findFirst().orElse(net.minecraft.world.item.ItemStack.EMPTY);
+                if(ammo.isEmpty()){p.displayClientMessage(Component.translatable("hint.astrodock.no_ammo",w.ammo.getDescription()),true);return;}
             }
             var v=body.attitude.transform(new Vector3f((float)(part.pos().getX()-hull.cx),(float)(part.pos().getY()-hull.cy),(float)(part.pos().getZ()-hull.cz)));
             var origin=position().add(v.x,hull.pivotHeight+v.y,v.z);
@@ -162,7 +167,10 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             var shot=new ShipShot(w.type.get(),level);shot.launch(this,p,origin,aim);
             if(level.addFreshEntity(shot)) {
                 nextShot[w.ordinal()]=now+w.delay;
-                if(!p.getAbilities().instabuild)ammo.orElseThrow().shrink(1);
+                if(!ammo.isEmpty())ammo.shrink(1);
+                if(w==ShipWeapon.CANNON && roomId!=0) {
+                    var r=room();if(r!=null && CabinRooms.level(level).getBlockEntity(r.core.offset(part.pos())) instanceof CannonMount mount)mount.fired();
+                }
                 level.playSound(null,blockPosition(),w.sound,net.minecraft.sounds.SoundSource.PLAYERS,1,.8f);
             }return;
         }
