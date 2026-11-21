@@ -8,6 +8,9 @@ import net.minecraft.gametest.framework.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.common.util.FakePlayer;
@@ -17,14 +20,19 @@ import net.minecraftforge.gametest.*;
 @PrefixGameTestTemplate(false)
 public class EnergyTurretTest {
     @GameTest(templateNamespace="minecraft",template="igloo/top",timeoutTicks=120)
-    public static void starterTurret(GameTestHelper t){
+    public static void craftedTurret(GameTestHelper t){
         var l=t.getLevel().getServer().getLevel(AstroDock.ORBIT);var p=new FakePlayer(l,new GameProfile(UUID.randomUUID(),"ADCannonTest"));
         BlockPos core=new BlockPos(816,180,816),gun=core.east();CabinRooms.follow(l,new ChunkPos(core));
         l.setBlockAndUpdate(core,ShipParts.CORE.get().defaultBlockState());l.setBlockAndUpdate(core.north(),ShipParts.ENGINE.get().defaultBlockState());
         p.setPos(Vec3.atBottomCenterOf(core.south(2)));p.setYRot(0);p.setXRot(0);p.getAbilities().instabuild=false;
-        StarterEquipment.grantOnce(p);var hand=p.getMainHandItem();t.assertTrue(hand.is(ShipParts.CANNON.get().asItem()),"初期ブロックがない");
+        var grid=new TransientCraftingContainer(p.inventoryMenu,3,3);
+        grid.setItem(1,new ItemStack(Items.IRON_INGOT));grid.setItem(3,new ItemStack(Items.DISPENSER));
+        grid.setItem(4,new ItemStack(Items.IRON_BLOCK));grid.setItem(5,new ItemStack(Items.DISPENSER));grid.setItem(7,new ItemStack(Items.REDSTONE));
+        var recipe=l.getRecipeManager().getRecipeFor(RecipeType.CRAFTING,grid,l).orElseThrow();
+        var hand=recipe.assemble(grid,l.registryAccess());t.assertTrue(hand.is(ShipParts.CANNON.get().asItem()) && hand.getCount()==1,"主砲をクラフトできない");
+        p.setItemInHand(InteractionHand.MAIN_HAND,hand);
         hand.useOn(new UseOnContext(p,InteractionHand.MAIN_HAND,new BlockHitResult(Vec3.atCenterOf(core),Direction.EAST,core,false)));
-        StarterEquipment.grantOnce(p);t.assertTrue(p.getInventory().isEmpty() && l.getBlockEntity(gun) instanceof CannonMount,"設置または一度きりの配布に失敗");
+        t.assertTrue(p.getInventory().isEmpty() && l.getBlockEntity(gun) instanceof CannonMount,"ブロックアイテムを消費して砲塔を設置できない");
         var sel=new CompoundTag();sel.putLong("core",core.asLong());sel.putLong("a",core.north().asLong());sel.putLong("b",gun.asLong());sel.putBoolean("all",true);
         t.assertTrue(ShipWrench.assemble(l,p,sel),"組立失敗");Ship weak=(Ship)p.getVehicle();weak.command(p,ShipCommand.Action.CANNON);
         t.assertTrue(l.getEntitiesOfClass(ShipShot.class,weak.getBoundingBox().inflate(4)).isEmpty(),"出力不足でも発射できた");weak.dock(p);
