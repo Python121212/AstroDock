@@ -25,6 +25,7 @@ jobs:
           ./gradlew runGameTestServer --no-daemon
           grep -F 'AstroDock orbit placement verified' build/gametest/logs/latest.log
           grep -F 'AstroDock ship round trip verified' build/gametest/logs/latest.log
+          grep 'ASTRO_BENCH blocks=' build/gametest/logs/latest.log | sed 's/.*ASTRO_BENCH/::notice title=Physics benchmark::ASTRO_BENCH/'
         timeout-minutes: 8
       - name: JAR の内容を確認
         run: |
