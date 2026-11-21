@@ -1,7 +1,7 @@
 package io.github.python121212.astrodock.ship;
 
 import java.util.*;
-import io.github.python121212.astrodock.AstroDock;
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.*;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.*;
@@ -48,8 +48,19 @@ public final class CabinRooms extends SavedData {
             for(var p:BlockPos.betweenClosed(a,b)) if(p.getX()==a.getX() || p.getY()==a.getY() || p.getZ()==a.getZ() || p.getX()==b.getX() || p.getY()==b.getY() || p.getZ()==b.getZ())
                 l.setBlock(p,(place?Blocks.BARRIER:Blocks.AIR).defaultBlockState(),2|16|32);
         }
+        Vec3 landing(ServerLevel cabin,BlockPos floor) {
+            var shape=cabin.getBlockState(floor).getCollisionShape(cabin,floor);
+            if(shape.isEmpty())return null;
+            var feet=Vec3.atBottomCenterOf(floor).add(0,shape.max(Direction.Axis.Y),0);
+            var box=new AABB(feet.x-.3,feet.y,feet.z-.3,feet.x+.3,feet.y+1.8,feet.z+.3);
+            return cabin.noCollision(box) && cabin.getEntitiesOfClass(Player.class,box).isEmpty()?feet:null;
+        }
         Vec3 entry(ServerLevel cabin,Hull hull) {
-            return hull.deck.entrance(v->{Vec3 at=v.add(core.getX(),core.getY(),core.getZ());return cabin.noCollision(new AABB(at.x-.3,at.y,at.z-.3,at.x+.3,at.y+1.8,at.z+.3)) && !cabin.getBlockState(BlockPos.containing(at).below()).getCollisionShape(cabin,BlockPos.containing(at).below()).isEmpty();});
+            // 元の出入口を優先するが、改築後は現在の床と当たり判定を使う。
+            var initial=hull.deck.entrance(v->landing(cabin,core.offset(BlockPos.containing(v)).below())!=null);
+            if(initial!=null)return landing(cabin,core.offset(BlockPos.containing(initial)).below());
+            for(var floor:BlockPos.betweenClosed(lo,hi)){var feet=landing(cabin,floor);if(feet!=null)return feet;}
+            return null;
         }
     }
     Room allocate(BlockPos a,BlockPos b,BlockPos core) {
@@ -82,9 +93,14 @@ public final class CabinRooms extends SavedData {
     // CloneCommands と同様に全状態の設置後に BE を読む。ForgeCaps を含む永続 NBT のみを転送。
     static void copyData(ServerLevel src,BlockPos from,ServerLevel dest,BlockPos to) {
         var old=src.getBlockEntity(from);var be=dest.getBlockEntity(to);
-        if(old!=null && be!=null) {be.load(old.saveWithoutMetadata());be.setChanged();dest.sendBlockUpdated(to,dest.getBlockState(to),dest.getBlockState(to),2);}
+        if(old!=null && (be==null || be.getType()!=old.getType()))throw new IllegalStateException("移動先でブロックエンティティを復元できません: "+from);
+        if(old!=null) {be.load(old.saveWithoutMetadata());be.setChanged();dest.sendBlockUpdated(to,dest.getBlockState(to),dest.getBlockState(to),2);}
         var box=new BoundingBox(from);var delta=to.subtract(from);
         dest.getBlockTicks().copyAreaFrom(src.getBlockTicks(),box,delta);dest.getFluidTicks().copyAreaFrom(src.getFluidTicks(),box,delta);
+    }
+    static boolean tryCopy(ServerLevel src,BlockPos from,ServerLevel dest,BlockPos to) {
+        try {copyData(src,from,dest,to);return true;}
+        catch(RuntimeException ex) {LogUtils.getLogger().warn("船室転送を中止: {} → {}",from,to,ex);return false;}
     }
     static void erase(ServerLevel l,BlockPos pos) {
         Clearable.tryClear(l.getBlockEntity(pos));l.removeBlockEntity(pos);
@@ -95,7 +111,7 @@ public final class CabinRooms extends SavedData {
         ServerLevel c=level(p.serverLevel());Vec3 v=r.entry(c,s.hull());
         if(v==null) {ShipWrench.message(p,"船室に入れる足場がありません");return;}
         r.visitors.add(p.getUUID());data(c).setDirty();p.getPersistentData().putInt(VISIT,r.id);
-        ticket(p.serverLevel(),s.chunkPosition());p.stopRiding();v=v.add(r.core.getX(),r.core.getY(),r.core.getZ());
+        ticket(p.serverLevel(),s.chunkPosition());p.stopRiding();
         p.teleportTo(c,v.x,v.y,v.z,p.getYRot(),0);p.setDeltaMovement(Vec3.ZERO);p.fallDistance=0;
     }
     public static void leave(ServerPlayer p) {
@@ -121,7 +137,7 @@ public final class CabinRooms extends SavedData {
     @SubscribeEvent public static void breaking(BlockEvent.BreakEvent e) {
         if(!(e.getLevel() instanceof ServerLevel l) || l.dimension()!=LEVEL)return;
         Room r=data(l).get(e.getPlayer().getPersistentData().getInt(VISIT));
-        if(r==null || !r.contains(e.getPos()) || e.getPos().equals(r.core)) e.setCanceled(true);
+        if(r==null || !min(e.getPos(),r.lo).equals(r.lo) || !max(e.getPos(),r.hi.above(2)).equals(r.hi.above(2)) || e.getPos().equals(r.core)) e.setCanceled(true);
     }
     @SubscribeEvent public static void placing(BlockEvent.EntityPlaceEvent e) {
         if(!(e.getLevel() instanceof ServerLevel l) || l.dimension()!=LEVEL || !(e.getEntity() instanceof Player p))return;

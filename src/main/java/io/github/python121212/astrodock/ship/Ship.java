@@ -279,7 +279,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         }
         if (!to.noCollision(next,next.getBoundingBox()) || !to.addFreshEntity(next)) {setDeltaMovement(Vec3.ZERO);return null;}
         next.roomId=roomId;
-        if(roomId!=0){var d=CabinRooms.data(from);var r=d.get(roomId);if(r!=null)d.locate(r,next);}
+        if(roomId!=0){var d=CabinRooms.data(from);var r=d.get(roomId);if(r!=null){d.locate(r,next);if(!r.visitors.isEmpty())CabinRooms.ticket(to,next.chunkPosition());}}
         // 降船時に元の席情報が消えるので、先に全員分を転送先に複製する。
         for(Entity rider:List.copyOf(getPassengers())) if(rider instanceof ServerPlayer player) {
             Vec3 look=passage.rotate(player.getLookAngle());
@@ -329,7 +329,13 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             ShipWrench.message(p,"保護された場所には再設置できません");return;
         }
         if(room!=null) {
-            for(var pos:local.keySet()) CabinRooms.copyData(cabin,room.core.offset(pos),l,core.offset(pos.rotate(rot)));
+            for(var pos:local.keySet()) {
+                var dest=core.offset(pos.rotate(rot));
+                if(!l.getBlockState(dest).equals(placement.get(dest)) || !CabinRooms.tryCopy(cabin,room.core.offset(pos),l,dest)) {
+                    for(var placed:placement.keySet()) CabinRooms.erase(l,placed);
+                    ShipWrench.message(p,"機械データを復元できません。船室の内容は変更していません");return;
+                }
+            }
             for(var pos:local.keySet()) CabinRooms.erase(cabin,room.core.offset(pos));
             room.walls(cabin,false);CabinRooms.data(l).forget(room);
         }

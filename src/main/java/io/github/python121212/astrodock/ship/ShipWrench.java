@@ -111,7 +111,11 @@ public final class ShipWrench extends Item {
         var db=CabinRooms.data(l);var room=db.allocate(a,b,core);ship.roomId=room.id;db.locate(room,ship);
         room.walls(cabin,true);
         for(var part:parts) cabin.setBlock(room.core.offset(part.pos()),part.state(),2|16|32);
-        for(var part:parts) CabinRooms.copyData(l,core.offset(part.pos()),cabin,room.core.offset(part.pos()));
+        for(var part:parts) if(!cabin.getBlockState(room.core.offset(part.pos())).equals(part.state()) ||
+                !CabinRooms.tryCopy(l,core.offset(part.pos()),cabin,room.core.offset(part.pos()))) {
+            for(var placed:parts)CabinRooms.erase(cabin,room.core.offset(placed.pos()));
+            room.walls(cabin,false);db.forget(room);ship.discard();message(p,"この部品は船室へ移せません。元の船体は変更していません");return false;
+        }
         for(var part:parts) CabinRooms.erase(l,core.offset(part.pos()));
         for(var part:parts) {
             l.updateNeighborsAt(core.offset(part.pos()),Blocks.AIR);
