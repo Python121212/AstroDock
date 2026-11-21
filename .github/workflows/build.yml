@@ -29,6 +29,8 @@ jobs:
           grep -F 'AstroDock orbit placement verified' build/gametest/logs/latest.log
           grep -F 'AstroDock ship round trip verified' build/gametest/logs/latest.log
           grep -F 'AstroDock rigid body verified' build/gametest/logs/latest.log
+          grep -F 'AstroDock orbit prefetch verified' build/gametest/logs/latest.log
+          grep -F 'AstroDock shipyard verified' build/gametest/logs/latest.log
           grep -F 'AstroDock planet landing verified' build/gametest/logs/latest.log
           grep 'ASTRO_BENCH blocks=' build/gametest/logs/latest.log | sed 's/.*ASTRO_BENCH/::notice title=Physics benchmark::ASTRO_BENCH/'
         timeout-minutes: 8
