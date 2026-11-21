@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "FFF",
+    "III",
+    "FFF"
+  ],
+  "key": {
+    "F": {
+      "item": "astrodock:stratasteel_flake"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "astrodock:laminated_armor",
+    "count": 3
+  }
+}

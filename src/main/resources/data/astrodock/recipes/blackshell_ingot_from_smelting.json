@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": [
+    {
+      "item": "astrodock:raw_blackshell"
+    },
+    {
+      "item": "astrodock:blackshell_ore"
+    }
+  ],
+  "result": "astrodock:blackshell_ingot",
+  "experience": 0.7,
+  "cookingtime": 200
+}

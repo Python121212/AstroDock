@@ -16,6 +16,7 @@ public final class Hull {
     final EnginePlant plant;
     public final List<Part> parts;
     public final double mass, cx, cy, cz, radiusX, radiusZ, pivotHeight;
+    final double verticalDrag;
     final float armX, armY, armZ;
     final Matrix3f inertiaTensor, inverseInertia;
     final CabinDeck deck;
@@ -36,6 +37,8 @@ public final class Hull {
             m+=p.mass; x+=p.mass*p.pos.getX(); y+=p.mass*p.pos.getY(); z+=p.mass*p.pos.getZ();
             low=Math.min(low,p.pos.getY()); high=Math.max(high,p.pos.getY());
         }
+        // 同じ形なら密度が高いほど鉛直速度に対する空気抵抗の効きが小さい。
+        verticalDrag=.055*Math.sqrt(4*parts.size()/m);
         mass=m; cx=x/m; cy=y/m; cz=z/m; pivotHeight=cy-low+0.5; floor=low; height=high-low+1;
         double xx=0, yy=0, zz=0, xy=0, xz=0, yz=0, ax=0, ay=0, az=0, rx=0, rz=0; int engines=0; boolean helm=false, stabilizer=false;
         for (Part p : parts) {
@@ -51,6 +54,11 @@ public final class Hull {
         hasGravityController=stabilizer; hasHelm=helm; this.engines=engines; armX=(float)ax; armY=(float)ay; armZ=(float)az;
         inertiaTensor=new Matrix3f((float)xx,(float)xy,(float)xz,(float)xy,(float)yy,(float)yz,(float)xz,(float)yz,(float)zz);
         inverseInertia=new Matrix3f(inertiaTensor).invert(); radiusX=rx; radiusZ=rz;
+    }
+    static double partMass(BlockState state,float hardness) {
+        if(state.is(ShipParts.LAMINATED_ARMOR.get())) return 3;
+        if(state.is(ShipParts.BLACKSHELL_ARMOR.get())) return 12;
+        return 1+Math.min(8,hardness);
     }
     ListTag save() {
         ListTag list=new ListTag();

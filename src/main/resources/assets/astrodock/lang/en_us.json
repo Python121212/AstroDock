@@ -63,5 +63,12 @@
   "core.astrodock.status10": "Refit complete. Press H to return.",
   "core.astrodock.status11": "Hull updated. No thrusters: ship remains moored.",
   "hint.astrodock.blocked_port": "The doorway is obstructed",
-  "hint.astrodock.captain_only": "Only the owner can operate this station"
+  "hint.astrodock.captain_only": "Only the owner can operate this station",
+  "block.astrodock.stratasteel_ore": "Stratasteel Ore",
+  "block.astrodock.blackshell_ore": "Blackshell Ore",
+  "block.astrodock.laminated_armor": "Laminated Armor",
+  "block.astrodock.blackshell_armor": "Blackshell Heavy Armor",
+  "item.astrodock.stratasteel_flake": "Stratasteel Flake",
+  "item.astrodock.raw_blackshell": "Raw Blackshell",
+  "item.astrodock.blackshell_ingot": "Blackshell Ingot"
 }

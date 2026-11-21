@@ -24,6 +24,13 @@ public final class ShipParts {
     public static final RegistryObject<Block> CORE = part("ship_core", ShipCoreBlock::new), ENGINE = part("thruster", Block::new);
     public static final RegistryObject<Block> PLANT=part("engine_core",EngineCoreBlock::new), DRIVE=part("power_unit",Block::new),
             GENERATOR=part("generator",Block::new), COOLER=part("cooling_unit",Block::new);
+    public static final RegistryObject<Block> STRATASTEEL_ORE = part("stratasteel_ore", p -> new Block(p.strength(3,3).sound(SoundType.STONE)));
+    public static final RegistryObject<Block> BLACKSHELL_ORE = part("blackshell_ore", p -> new Block(p.strength(4.5f,4.5f).sound(SoundType.DEEPSLATE)));
+    public static final RegistryObject<Block> LAMINATED_ARMOR = part("laminated_armor", p -> new Block(p.strength(4,16).sound(SoundType.METAL)));
+    public static final RegistryObject<Block> BLACKSHELL_ARMOR = part("blackshell_armor", p -> new Block(p.strength(8,48).sound(SoundType.METAL)));
+    public static final RegistryObject<Item> STRATASTEEL_FLAKE = ITEMS.register("stratasteel_flake", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> RAW_BLACKSHELL = ITEMS.register("raw_blackshell", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> BLACKSHELL_INGOT = ITEMS.register("blackshell_ingot", () -> new Item(new Item.Properties()));
     static final RegistryObject<BlockEntityType<EngineAnchor>> ANCHOR=TILES.register("engine_core",()->BlockEntityType.Builder.of(EngineAnchor::new,PLANT.get()).build(null));
     public static final RegistryObject<Block> CONSOLE = part("engine_console", Block::new);
     public static final RegistryObject<Block> GRAVITY_CONTROLLER = part("gravity_controller", Block::new);
@@ -48,6 +55,13 @@ public final class ShipParts {
             .displayItems((parameters, output) -> {
                 output.accept(CORE.get()); output.accept(ENGINE.get()); output.accept(HELM.get()); output.accept(CONSOLE.get()); output.accept(AIRLOCK.get()); output.accept(HATCH.get()); output.accept(CANNON.get()); output.accept(MISSILES.get()); output.accept(TORPEDOES.get()); output.accept(WRENCH.get()); output.accept(AstroDock.CAPSULE.get());
                 output.accept(PLANT.get());output.accept(DRIVE.get());output.accept(GENERATOR.get());output.accept(COOLER.get());output.accept(GRAVITY_CONTROLLER.get());
+                output.accept(STRATASTEEL_ORE.get());
+                output.accept(BLACKSHELL_ORE.get());
+                output.accept(LAMINATED_ARMOR.get());
+                output.accept(BLACKSHELL_ARMOR.get());
+                output.accept(STRATASTEEL_FLAKE.get());
+                output.accept(RAW_BLACKSHELL.get());
+                output.accept(BLACKSHELL_INGOT.get());
             }).build());
 
     private static RegistryObject<Block> part(String id, Function<BlockBehaviour.Properties,Block> factory) {

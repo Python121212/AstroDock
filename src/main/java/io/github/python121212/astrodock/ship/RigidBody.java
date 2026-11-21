@@ -31,7 +31,7 @@ final class RigidBody {
         double drag = 1 - 0.055 * air, a = h.engines / h.mass;
         // 垂直推進はワールドの上方向。長押し中は重力に対抗し、機体質量に応じて加速する。
         double lift=rising && supply>0 && h.engines>0 ? 0.8*a*supply : a*tmp.y-0.035*(1-Atmosphere.gravityLoss(altitude));
-        double x=v.x*drag+a*tmp.x, y=v.y*drag+lift, z=v.z*drag+a*tmp.z;
+        double x=v.x*drag+a*tmp.x, y=v.y*(1-h.verticalDrag*air)+lift, z=v.z*drag+a*tmp.z;
         double speed2=x*x+y*y+z*z, limit=speed2>9 ? 3/Math.sqrt(speed2) : 1;
 
         // Σ(r × F) は同じ推力を受けるエンジンの腕の和から一度で求められる。

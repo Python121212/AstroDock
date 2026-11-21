@@ -63,5 +63,12 @@
   "core.astrodock.status10": "設備を反映しました。Hで艦に戻れます。",
   "core.astrodock.status11": "外装を反映しました。スラスター未搭載のため停泊中です。",
   "hint.astrodock.blocked_port": "入口の先に立てる空間がありません",
-  "hint.astrodock.captain_only": "この設備を操作できるのは艦の所有者だけです"
+  "hint.astrodock.captain_only": "この設備を操作できるのは艦の所有者だけです",
+  "block.astrodock.stratasteel_ore": "層鋼鉱石",
+  "block.astrodock.blackshell_ore": "黒殻鉱石",
+  "block.astrodock.laminated_armor": "積層装甲ブロック",
+  "block.astrodock.blackshell_armor": "黒殻重装甲ブロック",
+  "item.astrodock.stratasteel_flake": "層鋼片",
+  "item.astrodock.raw_blackshell": "黒殻の原石",
+  "item.astrodock.blackshell_ingot": "黒殻インゴット"
 }
