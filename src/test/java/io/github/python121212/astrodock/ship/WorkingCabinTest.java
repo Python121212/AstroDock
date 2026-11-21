@@ -43,6 +43,9 @@ public class WorkingCabinTest {
         orbit.setBlockAndUpdate(hatch,ShipParts.HATCH.get().defaultBlockState());t.assertTrue(ShipWrench.assemble(orbit,p,tag),"機械搭載船を組めない");
         Ship ship=(Ship)p.getVehicle();var d=CabinRooms.data(orbit);var r=d.get(ship.roomId);
         ship.command(p,ShipCommand.Action.CABIN);t.assertTrue(p.level()==cabin && !p.isPassenger() && r.visitors.contains(p.getUUID()),"作業船室への入室失敗");
+        BlockPos port=r.core.east(4);var state=cabin.getBlockState(port);
+        state.use(cabin,p,net.minecraft.world.InteractionHand.MAIN_HAND,new net.minecraft.world.phys.BlockHitResult(Vec3.atCenterOf(port),net.minecraft.core.Direction.UP,port,false));
+        t.assertTrue(cabin.getBlockState(port).getValue(TrapDoorBlock.OPEN),"艦外ハッチが手で開かない");
         var cargo=(Container)cabin.getBlockEntity(r.core.east(2));t.assertTrue(cargo.getItem(0).getCount()==5,"積荷の数が不正");cargo.removeItem(0,2);
         cabin.setBlockAndUpdate(r.core.east().above(),Blocks.CRAFTING_TABLE.defaultBlockState());
         ship.setPos(ship.getX(),-.1,ship.getZ());var next=ship.crossBoundary(orbit);

@@ -7,8 +7,9 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 
 final class HullDoors {
+    static boolean airlock(BlockState s) {return s!=null && (s.is(ShipParts.AIRLOCK.get()) || s.is(ShipParts.HATCH.get()));}
     static boolean ordinary(BlockState s) {
-        return !s.is(ShipParts.AIRLOCK.get()) && !s.is(ShipParts.HATCH.get()) &&
+        return !airlock(s) &&
                 (s.getBlock() instanceof DoorBlock || s.getBlock() instanceof TrapDoorBlock || s.is(BlockTags.DOORS) || s.is(BlockTags.TRAPDOORS));
     }
     // 部品を閉じたセルとして扱い、外から空セルを塗る。凹んだ外壁も検出する。

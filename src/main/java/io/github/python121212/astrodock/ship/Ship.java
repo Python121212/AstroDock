@@ -103,6 +103,9 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     }
     private BlockState aimedPanel(Player p) {
         if(hull==null || !walking(p) || !hasPassenger(p)) return null;
+        return aimedPart(p);
+    }
+    private BlockState aimedPart(Player p) {
         Vector3f eye=p.getEyePosition().subtract(getX(),getY()+hull.pivotHeight,getZ()).toVector3f();
         body.attitude.transformInverse(eye).add((float)(hull.cx+.5),(float)(hull.cy+.5),(float)(hull.cz+.5));
         Vector3f look=body.attitude.transformInverse(p.getLookAngle().toVector3f());
@@ -190,7 +193,11 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         if (level().isClientSide) return InteractionResult.SUCCESS;
         if (p.isSpectator() || hull==null) return InteractionResult.PASS;
         if (p.getItemInHand(hand).is(ShipParts.WRENCH.get()) && isOwner(p)) dock((ServerPlayer)p);
-        else if (!p.isPassenger() && !p.startRiding(this)) p.displayClientMessage(Component.translatable("hint.astrodock.crew_full"),true);
+        else if (!p.isPassenger()) {
+            boolean hatch=p.getItemInHand(hand).isEmpty() && roomId!=0 && HullDoors.airlock(aimedPart(p));
+            if(!p.startRiding(this)) p.displayClientMessage(Component.translatable("hint.astrodock.crew_full"),true);
+            else if(hatch && room()!=null) CabinRooms.enter(this,(ServerPlayer)p,room());
+        }
         return InteractionResult.CONSUME;
     }
     @Override public void lerpTo(double x,double y,double z,float yaw,float pitch,int count,boolean teleport) {

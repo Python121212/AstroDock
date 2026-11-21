@@ -135,6 +135,12 @@ public final class CabinRooms extends SavedData {
             var d=data(p.serverLevel());var r=d.get(p.getPersistentData().getInt(VISIT));if(r!=null && r.visitors.remove(p.getUUID()))d.setDirty();
         }
     }
+    @SubscribeEvent public static void airlock(net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock e) {
+        var p=e.getEntity();if(e.getLevel().dimension()!=LEVEL || !p.isShiftKeyDown() || !e.getItemStack().isEmpty() ||
+                !HullDoors.airlock(e.getLevel().getBlockState(e.getPos()))) return;
+        e.setCanceled(true);e.setCancellationResult(net.minecraft.world.InteractionResult.sidedSuccess(e.getLevel().isClientSide));
+        if(p instanceof ServerPlayer sp) leave(sp);
+    }
     @SubscribeEvent public static void breaking(BlockEvent.BreakEvent e) {
         if(!(e.getLevel() instanceof ServerLevel l) || l.dimension()!=LEVEL)return;
         Room r=data(l).get(e.getPlayer().getPersistentData().getInt(VISIT));
