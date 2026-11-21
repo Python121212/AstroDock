@@ -18,7 +18,7 @@ public final class AstroDock {
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, "astrodock");
     public static final RegistryObject<Item> CAPSULE = ITEMS.register("flight_capsule", FlightCapsule::new);
 
-    public AstroDock() { io.github.python121212.astrodock.ship.ShipParts.register(FMLJavaModLoadingContext.get().getModEventBus()); ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus()); }
+    public AstroDock() { io.github.python121212.astrodock.ship.ShipCommand.register(); io.github.python121212.astrodock.ship.ShipParts.register(FMLJavaModLoadingContext.get().getModEventBus()); ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus()); }
 
     public static boolean supported(Level level) {
         return level.dimension() == Level.OVERWORLD || level.dimension() == ORBIT || level.dimension() == RUBRA;

@@ -4,6 +4,8 @@ import java.util.*;
 import net.minecraft.network.syncher.*;
 import org.joml.Matrix3f;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
+import net.minecraft.network.chat.Component;
 import io.github.python121212.astrodock.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.*;
@@ -29,6 +31,9 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     private Hull hull;
     private UUID owner;
     private static final EntityDataAccessor<Quaternionf> ROTATION = SynchedEntityData.defineId(Ship.class, EntityDataSerializers.QUATERNION);
+    private static final EntityDataAccessor<Boolean> ENGINE_ON=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> ON_DECK=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Vector3f> FEET=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.VECTOR3);
     final RigidBody body = new RigidBody();
     private final Quaternionf previous = new Quaternionf();
     private final Matrix3f basis = new Matrix3f();
@@ -54,6 +59,74 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         return localBounds==null ? super.makeBoundingBox() : localBounds.move(getX(),getY(),getZ());
     }
     @Override public double getPassengersRidingOffset() { return localBounds==null?1:localBounds.maxY; }
+    public boolean engineOn() {return entityData.get(ENGINE_ON);}
+    public boolean walking() {return entityData.get(ON_DECK);}
+    Vector3f deckFeet() {return new Vector3f(entityData.get(FEET));}
+
+    /** 船体ブロックのローカル座標と物理重心のオフセットは描画と同じものを使う。 */
+    private Vec3 worldFeet() {
+        Vector3f v=deckFeet().sub((float)(hull.cx+.5),(float)(hull.cy+.5),(float)(hull.cz+.5));
+        body.attitude.transform(v);
+        return position().add(v.x,hull.pivotHeight+v.y,v.z);
+    }
+    private BlockState aimedPanel(Player p) {
+        if(hull==null || !walking() || !hasPassenger(p)) return null;
+        Vector3f eye=p.getEyePosition().subtract(getX(),getY()+hull.pivotHeight,getZ()).toVector3f();
+        body.attitude.transformInverse(eye).add((float)(hull.cx+.5),(float)(hull.cy+.5),(float)(hull.cz+.5));
+        Vector3f look=body.attitude.transformInverse(p.getLookAngle().toVector3f());
+        return hull.deck.aimedBlock(new Vec3(eye.x,eye.y,eye.z),new Vec3(look.x,look.y,look.z));
+    }
+    public boolean hasPanelInSight(Player p) {
+        BlockState b=aimedPanel(p);
+        return b!=null && (b.is(ShipParts.HELM.get()) || b.is(ShipParts.CORE.get()) || b.is(ShipParts.CONSOLE.get()));
+    }
+    void command(ServerPlayer p,ShipCommand.Action action) {
+        if (hull==null || isRemoved() || !p.isAlive() || p.isSpectator() || !p.getUUID().equals(owner) || getFirstPassenger()!=p) return;
+        switch(action) {
+            case ENGINE -> { if(!walking()) toggleEngine(p); }
+            case SEAT -> {
+                if(walking()) entityData.set(ON_DECK,false);
+                else if(hull.deck.entrance!=null) {
+                    entityData.set(FEET,hull.deck.entrance.toVector3f());entityData.set(ON_DECK,true);
+                } else { p.displayClientMessage(Component.translatable("hint.astrodock.no_deck"),true);return; }
+                positionRider(p);
+            }
+            case USE_PANEL -> {
+                var target=aimedPanel(p);
+                if(target!=null && target.is(ShipParts.CONSOLE.get())) toggleEngine(p);
+                else if(target!=null && (target.is(ShipParts.HELM.get()) || target.is(ShipParts.CORE.get()))) {
+                    entityData.set(ON_DECK,false);positionRider(p);
+                }
+            }
+        }
+    }
+    private void toggleEngine(ServerPlayer p) {
+        entityData.set(ENGINE_ON,!engineOn());
+        p.displayClientMessage(Component.translatable(engineOn()?"hud.astrodock.engine_on":"hud.astrodock.engine_off"),true);
+    }
+    @Override protected void positionRider(Entity p,Entity.MoveFunction move) {
+        if(walking() && hull!=null && hasPassenger(p)) {
+            Vec3 at=worldFeet();move.accept(p,at.x,at.y,at.z);
+        } else super.positionRider(p,move);
+    }
+    @Override public boolean shouldRiderSit() {return !walking();}
+    @Override protected void removePassenger(Entity p) {
+        super.removePassenger(p);
+        if(!level().isClientSide) entityData.set(ON_DECK,false);
+    }
+    private void walk(ServerPlayer rider) {
+        if(rider.zza==0 && rider.xxa==0) return;
+        Vector3f direction=body.attitude.transformInverse(rider.getLookAngle().toVector3f());
+        if(direction.x*direction.x+direction.z*direction.z<1e-6) {
+            // 真上・真下を向いた時は視線の横軸からデッキ上の前方を求める。
+            double yaw=rider.getYRot()*Mth.DEG_TO_RAD;
+            body.attitude.transformInverse(direction.set((float)Math.cos(yaw),0,(float)Math.sin(yaw)));
+            direction.set(-direction.z,0,direction.x);
+        }
+        var now=entityData.get(FEET);
+        var next=hull.deck.advance(now,new Vec3(direction.x,0,direction.z),rider.zza,rider.xxa);
+        if(next!=now) entityData.set(FEET,next);
+    }
     @Override public boolean isPickable() { return !isRemoved(); }
     @Override public InteractionResult interact(Player p,InteractionHand hand) {
         if (level().isClientSide) return InteractionResult.SUCCESS;
@@ -74,10 +147,14 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             if(steps>0) {setYRot(getYRot()+Mth.wrapDegrees(targetYaw-getYRot())/steps);setPos(getX()+(tx-getX())/steps,getY()+(ty-getY())/steps,getZ()+(tz-getZ())/steps);steps--;}
             return;
         }
-        ServerPlayer pilot=getFirstPassenger() instanceof ServerPlayer rider?rider:null;
+        ServerPlayer occupant=getFirstPassenger() instanceof ServerPlayer rider?rider:null;
+        if (walking()) {
+            if(occupant!=null) walk(occupant); else entityData.set(ON_DECK,false);
+        }
+        ServerPlayer pilot=engineOn() && !walking()?occupant:null;
         double altitude=AstroDock.altitude(level(),getY());
         // 接地・無人・静止中は10 tickごとの支持面確認だけにする。
-        if (pilot==null && onGround() && getDeltaMovement().lengthSqr()==0 && body.momentum.lengthSquared()==0
+        if (occupant==null && onGround() && getDeltaMovement().lengthSqr()==0 && body.momentum.lengthSquared()==0
                 && tickCount%10!=0 && !PlanetTravel.approaching(level().dimension(),position())) return;
         boolean roll=pilot!=null && pilot.getOffhandItem().is(ShipParts.WRENCH.get());
         float lateral=pilot==null?0:pilot.xxa;
@@ -107,7 +184,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             Vec3 before=position();move(MoverType.SELF,velocity);
             setDeltaMovement(position().subtract(before));
         }
-        crossBoundary((ServerLevel)level(),pilot);
+        crossBoundary((ServerLevel)level(),occupant);
     }
     Ship crossBoundary(ServerLevel from, ServerPlayer pilot) {
         var passage=PlanetTravel.at(from.dimension(),position());
@@ -128,15 +205,17 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         next.setDeltaMovement(passage.rotate(getDeltaMovement()));
         to.getChunkAt(next.blockPosition());
         if (!to.noCollision(next,next.getBoundingBox()) || !to.addFreshEntity(next)) {setDeltaMovement(Vec3.ZERO);return null;}
+        next.entityData.set(ENGINE_ON,engineOn());
         if (pilot!=null) {
+            next.entityData.set(FEET,deckFeet());next.entityData.set(ON_DECK,walking());
             Vec3 look=passage.rotate(pilot.getLookAngle());
             pilot.stopRiding();pilot.teleportTo(to,next.getX(),next.getY()+next.getPassengersRidingOffset(),next.getZ(),passage.yaw(look,pilot.getYRot()),passage.pitch(look,pilot.getXRot()));
-            pilot.startRiding(next,true);pilot.fallDistance=0;
+            pilot.startRiding(next,true);next.positionRider(pilot);pilot.fallDistance=0;
         }
         discard();return next;
     }
     void dock(ServerPlayer p) {
-        if (!p.getUUID().equals(owner) || !p.getAbilities().mayBuild || hull==null || isRemoved()) return;
+        if (walking() || !p.getUUID().equals(owner) || !p.getAbilities().mayBuild || hull==null || isRemoved()) return;
         if (getDeltaMovement().length()>0.45) {ShipWrench.message(p,"減速してから再設置してください");return;}
         ServerLevel l=(ServerLevel)level();
         Rotation rot=Rotation.values()[Math.floorMod(Math.round(getYRot()/90f),4)];
@@ -162,10 +241,13 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         ejectPassengers(); if(riding) p.teleportTo(core.getX()+0.5,core.getY()+hull.floor+hull.height,core.getZ()+0.5);
         discard();ShipWrench.message(p,"船体を再設置しました");
     }
-    @Override protected void defineSynchedData() { entityData.define(ROTATION,new Quaternionf()); }
+    @Override protected void defineSynchedData() { entityData.define(ROTATION,new Quaternionf());
+        entityData.define(ENGINE_ON,true);entityData.define(ON_DECK,false);entityData.define(FEET,new Vector3f()); }
     private void syncAttitude() { previous.set(body.attitude);entityData.set(ROTATION,new Quaternionf(body.attitude)); }
     @Override protected void addAdditionalSaveData(CompoundTag t) {
         if(hull!=null) t.put("parts",hull.save()); if(owner!=null)t.putUUID("owner",owner);
+        t.putBoolean("engineOn",engineOn());
+        if(walking()) {var feet=deckFeet();t.putFloat("deckX",feet.x);t.putFloat("deckY",feet.y);t.putFloat("deckZ",feet.z);}
         Quaternionf q=body.attitude;
         t.putFloat("qx",q.x); t.putFloat("qy",q.y); t.putFloat("qz",q.z); t.putFloat("qw",q.w);
         t.putFloat("lx",body.momentum.x); t.putFloat("ly",body.momentum.y); t.putFloat("lz",body.momentum.z);
@@ -186,6 +268,11 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             loaded.inertiaTensor.transform(body.momentum);body.attitude.transform(body.momentum);
         }
         configure(loaded,t.getUUID("owner"));syncAttitude();
+        entityData.set(ENGINE_ON,!t.contains("engineOn") || t.getBoolean("engineOn"));
+        var feet=new Vector3f(t.getFloat("deckX"),t.getFloat("deckY"),t.getFloat("deckZ"));
+        boolean restore=t.contains("deckX") && feet.isFinite() && loaded.deck.canStand(feet.x,feet.y,feet.z);
+        if(restore) entityData.set(FEET,feet);
+        entityData.set(ON_DECK,restore);
     }
     @Override public Packet<ClientGamePacketListener> getAddEntityPacket() { return NetworkHooks.getEntitySpawningPacket(this); }
     @Override public void writeSpawnData(FriendlyByteBuf b) {

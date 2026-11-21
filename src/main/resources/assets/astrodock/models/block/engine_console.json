@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "side": "astrodock:block/thruster_side",
+    "top": "astrodock:block/helm_panel",
+    "bottom": "astrodock:block/core_armor"
+  }
+}
