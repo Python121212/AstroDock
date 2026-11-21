@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "side": "astrodock:block/main_cannon_side",
+    "top": "astrodock:block/main_cannon_face",
+    "bottom": "astrodock:block/core_armor"
+  }
+}

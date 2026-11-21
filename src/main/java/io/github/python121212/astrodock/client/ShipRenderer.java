@@ -15,7 +15,9 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid="astrodock",value=Dist.CLIENT,bus=Mod.EventBusSubscriber.Bus.MOD)
 public final class ShipRenderer extends EntityRenderer<Ship> {
     ShipRenderer(EntityRendererProvider.Context ctx) { super(ctx); }
-    @SubscribeEvent public static void register(EntityRenderersEvent.RegisterRenderers e) {e.registerEntityRenderer(ShipParts.SHIP.get(),ShipRenderer::new);}
+    @SubscribeEvent public static void register(EntityRenderersEvent.RegisterRenderers e) {e.registerEntityRenderer(ShipParts.SHIP.get(),ShipRenderer::new);
+        for(var shot:java.util.List.of(ShipParts.SHELL,ShipParts.MISSILE,ShipParts.TORPEDO))
+            e.registerEntityRenderer(shot.get(),ctx->new ThrownItemRenderer<>(ctx,1.3f,true));}
     @Override public ResourceLocation getTextureLocation(Ship ship) { return TextureAtlas.LOCATION_BLOCKS; }
     @Override public void render(Ship ship,float yaw,float partial,PoseStack poses,MultiBufferSource buffers,int light) {
         Hull hull=ship.hull(); if(hull==null)return;

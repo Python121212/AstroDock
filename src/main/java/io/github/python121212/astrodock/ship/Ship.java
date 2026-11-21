@@ -29,6 +29,7 @@ import net.minecraft.core.Direction;
 
 public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     private Hull hull;
+    private final long[] nextShot=new long[ShipWeapon.values().length];
     int roomId; // 0 は 0.9 以前の船体
     private CabinRooms.Room room() {return roomId==0?null:CabinRooms.data((ServerLevel)level()).get(roomId);}
     private UUID owner;
@@ -122,6 +123,9 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         }
         if(!isOwner(p))return;
         switch(action) {
+            case CANNON, MISSILE, TORPEDO -> {
+                if(!ownerWalking() && engineOn()) fire(p,ShipWeapon.valueOf(action.name()));
+            }
             case ENGINE -> { if(!ownerWalking()) toggleEngine(p); }
             case SEAT -> {
                 if(ownerWalking()) entityData.set(ON_DECK,false);
@@ -140,6 +144,29 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
                 }
             }
         }
+    }
+    private void fire(ServerPlayer p,ShipWeapon w) {
+        var level=(ServerLevel)level();long now=level.getGameTime();
+        if(now<nextShot[w.ordinal()])return;
+        Vec3 aim=p.getLookAngle().normalize();var dir=body.attitude.transformInverse(aim.toVector3f());
+        Vec3 local=new Vec3(dir.x,dir.y,dir.z);boolean installed=false;
+        for(var part:hull.parts) if(part.state().is(w.mount.get())) {
+            installed=true;if(!hull.deck.clearMuzzle(part.pos(),local))continue;
+            var ammo=p.getInventory().items.stream().filter(stack->stack.is(w.ammo)).findFirst();
+            if(!p.getAbilities().instabuild && ammo.isEmpty()) {
+                p.displayClientMessage(Component.translatable("hint.astrodock.no_ammo",w.ammo.getDescription()),true);return;
+            }
+            var v=body.attitude.transform(new Vector3f((float)(part.pos().getX()-hull.cx),(float)(part.pos().getY()-hull.cy),(float)(part.pos().getZ()-hull.cz)));
+            var origin=position().add(v.x,hull.pivotHeight+v.y,v.z);
+            if(!level.hasChunkAt(BlockPos.containing(origin)))return;
+            var shot=new ShipShot(w.type.get(),level);shot.launch(this,p,origin,aim);
+            if(level.addFreshEntity(shot)) {
+                nextShot[w.ordinal()]=now+w.delay;
+                if(!p.getAbilities().instabuild)ammo.orElseThrow().shrink(1);
+                level.playSound(null,blockPosition(),w.sound,net.minecraft.sounds.SoundSource.PLAYERS,1,.8f);
+            }return;
+        }
+        p.displayClientMessage(Component.translatable(installed?"hint.astrodock.muzzle_blocked":"hint.astrodock.no_mount",w.mount.get().getName()),true);
     }
     private void toggleEngine(ServerPlayer p) {
         entityData.set(ENGINE_ON,!engineOn());
@@ -282,7 +309,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             next.body.attitude.premul(passage.frame()).normalize();
             passage.frame().transform(next.body.momentum);
         }
-        next.configure(hull,owner);next.syncAttitude();
+        System.arraycopy(nextShot,0,next.nextShot,0,nextShot.length);next.configure(hull,owner);next.syncAttitude();
         Vec3 at=passage.position();next.moveTo(at.x,at.y,at.z,next.body.heading(getYRot()),0);
         next.setDeltaMovement(passage.rotate(getDeltaMovement()));
         to.getChunkAt(next.blockPosition());
@@ -364,7 +391,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     }
     private void syncAttitude() { previous.set(body.attitude);entityData.set(ROTATION,new Quaternionf(body.attitude)); }
     @Override protected void addAdditionalSaveData(CompoundTag t) {
-        t.putInt("room",roomId);
+        t.putLongArray("nextShot",nextShot);t.putInt("room",roomId);
         if(hull!=null) t.put("parts",hull.save()); if(owner!=null)t.putUUID("owner",owner);
         t.putBoolean("engineOn",engineOn());
         if(ownerWalking()) {var feet=entityData.get(FEET);t.putFloat("deckX",feet.x);t.putFloat("deckY",feet.y);t.putFloat("deckZ",feet.z);}
@@ -380,6 +407,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     }
     @Override protected void readAdditionalSaveData(CompoundTag t) {
         if(!t.contains("parts") || !t.hasUUID("owner")) return;
+        var times=t.getLongArray("nextShot");System.arraycopy(times,0,nextShot,0,Math.min(times.length,nextShot.length));
         roomId=t.getInt("room");
         Hull loaded=Hull.load(t.getList("parts",Tag.TAG_COMPOUND),level());
         if (t.contains("qw")) {

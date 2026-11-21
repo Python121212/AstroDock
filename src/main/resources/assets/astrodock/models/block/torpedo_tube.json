@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "side": "astrodock:block/torpedo_tube_side",
+    "top": "astrodock:block/torpedo_tube_face",
+    "bottom": "astrodock:block/core_armor"
+  }
+}

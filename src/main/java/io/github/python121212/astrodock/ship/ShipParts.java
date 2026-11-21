@@ -21,6 +21,12 @@ public final class ShipParts {
     public static final RegistryObject<Block> HELM = part("helm", HelmBlock::new);
     public static final RegistryObject<Block> AIRLOCK = part("airlock_door", p -> new DoorBlock(p.noOcclusion(), BlockSetType.STONE) {});
     public static final RegistryObject<Block> HATCH = part("exterior_hatch", p -> new TrapDoorBlock(p.noOcclusion(), BlockSetType.STONE) {});
+    public static final RegistryObject<Block> CANNON = part("main_cannon", Block::new), MISSILES = part("missile_launcher", Block::new), TORPEDOES = part("torpedo_tube", Block::new);
+    public static final RegistryObject<EntityType<ShipShot>> SHELL = shot("cannon_shot"), MISSILE = shot("missile"), TORPEDO = shot("torpedo");
+    private static RegistryObject<EntityType<ShipShot>> shot(String id) {
+        return ENTITIES.register(id, () -> EntityType.Builder.<ShipShot>of(ShipShot::new,MobCategory.MISC)
+                .sized(.3f,.3f).clientTrackingRange(8).updateInterval(1).noSummon().noSave().build("astrodock:"+id));
+    }
     public static final RegistryObject<Item> WRENCH = ITEMS.register("ship_wrench", ShipWrench::new);
     public static final RegistryObject<EntityType<Ship>> SHIP = ENTITIES.register("ship", () -> EntityType.Builder.<Ship>of(Ship::new, MobCategory.MISC)
             .sized(1, 1).clientTrackingRange(12).updateInterval(1).fireImmune().build("astrodock:ship"));
@@ -29,7 +35,7 @@ public final class ShipParts {
     public static final RegistryObject<CreativeModeTab> TAB = TABS.register("shipyard", () -> CreativeModeTab.builder()
             .title(Component.translatable("tab.astrodock.shipyard")).icon(() -> new ItemStack(CORE.get()))
             .displayItems((parameters, output) -> {
-                output.accept(CORE.get()); output.accept(ENGINE.get()); output.accept(HELM.get()); output.accept(CONSOLE.get()); output.accept(AIRLOCK.get()); output.accept(HATCH.get()); output.accept(WRENCH.get()); output.accept(AstroDock.CAPSULE.get());
+                output.accept(CORE.get()); output.accept(ENGINE.get()); output.accept(HELM.get()); output.accept(CONSOLE.get()); output.accept(AIRLOCK.get()); output.accept(HATCH.get()); output.accept(CANNON.get()); output.accept(MISSILES.get()); output.accept(TORPEDOES.get()); output.accept(WRENCH.get()); output.accept(AstroDock.CAPSULE.get());
             }).build());
 
     private static RegistryObject<Block> part(String id, Function<BlockBehaviour.Properties,Block> factory) {
