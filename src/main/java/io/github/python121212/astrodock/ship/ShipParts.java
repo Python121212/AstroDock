@@ -18,6 +18,9 @@ public final class ShipParts {
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, "astrodock");
     private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, "astrodock");
     private static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES,"astrodock");
+    private static final DeferredRegister<net.minecraft.world.inventory.MenuType<?>> MENUS=DeferredRegister.create(ForgeRegistries.MENU_TYPES,"astrodock");
+    public static final RegistryObject<net.minecraft.world.inventory.MenuType<CoreMenu>> CORE_MENU=MENUS.register("ship_core",()->
+            net.minecraftforge.common.extensions.IForgeMenuType.create((id,inv,buf)->new CoreMenu(id,inv,buf.readBlockPos())));
     public static final RegistryObject<Block> CORE = part("ship_core", ShipCoreBlock::new), ENGINE = part("thruster", Block::new);
     public static final RegistryObject<Block> PLANT=part("engine_core",EngineCoreBlock::new), DRIVE=part("power_unit",Block::new),
             GENERATOR=part("generator",Block::new), COOLER=part("cooling_unit",Block::new);
@@ -51,5 +54,5 @@ public final class ShipParts {
         ITEMS.register(id, () -> block.get() instanceof DoorBlock ? new DoubleHighBlockItem(block.get(), new Item.Properties()) : new BlockItem(block.get(), new Item.Properties()));
         return block;
     }
-    public static void register(IEventBus bus) { BLOCKS.register(bus); ITEMS.register(bus); ENTITIES.register(bus); TILES.register(bus); TABS.register(bus); }
+    public static void register(IEventBus bus) { BLOCKS.register(bus); ITEMS.register(bus); ENTITIES.register(bus); TILES.register(bus); MENUS.register(bus); TABS.register(bus); }
 }

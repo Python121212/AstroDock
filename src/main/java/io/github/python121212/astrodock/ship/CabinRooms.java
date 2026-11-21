@@ -115,6 +115,10 @@ public final class CabinRooms extends SavedData {
         follow(p.serverLevel(),s.chunkPosition());p.stopRiding();
         p.teleportTo(c,v.x,v.y,v.z,p.getYRot(),0);p.setDeltaMovement(Vec3.ZERO);p.fallDistance=0;
     }
+    static Room visitedCore(ServerPlayer p,BlockPos core){
+        if(p.level().dimension()!=LEVEL)return null;var r=data(p.serverLevel()).get(p.getPersistentData().getInt(VISIT));
+        return r!=null && r.core.equals(core) && r.visitors.contains(p.getUUID())?r:null;
+    }
     public static void leave(ServerPlayer p) {
         if(p.level().dimension()!=LEVEL || !p.isAlive())return;
         CabinRooms d=data(p.serverLevel());Room r=d.get(p.getPersistentData().getInt(VISIT));

@@ -44,5 +44,21 @@
   "block.astrodock.power_unit": "動力部",
   "block.astrodock.generator": "発電部",
   "block.astrodock.cooling_unit": "冷却部",
-  "hud.astrodock.power_grid": "発電 %s ｜ 推進 %s ｜ 余剰 %s ｜ 熱 %s/100"
+  "hud.astrodock.power_grid": "発電 %s ｜ 推進 %s ｜ 余剰 %s ｜ 熱 %s/100",
+  "core.astrodock.scan": "内部を船化",
+  "core.astrodock.confirm": "確定",
+  "core.astrodock.apply": "設備を反映",
+  "core.astrodock.count": "船体 %s ブロック ／ 内部 %s マス",
+  "core.astrodock.start": "コアに面した密閉船室と外装1層を検出します。確定するまでは移動しません。",
+  "core.astrodock.work": "船室の改装を飛行用の船体に反映します。操縦席・甲板の乗員は先に降りてください。",
+  "core.astrodock.status2": "密閉区画を特定できません。開口を閉じてコアを船室に面して置くか、レンチで範囲を指定してください。",
+  "core.astrodock.status3": "船体が変わりました。もう一度検出してください。",
+  "core.astrodock.status4": "船化できません。保護、部品、範囲を確認してください。",
+  "core.astrodock.status5": "この船室の所有者だけが反映できます。",
+  "core.astrodock.status6": "艦を読み込み中です。少し待ってください。",
+  "core.astrodock.status7": "操縦席・甲板に乗員がいます。先に降りてください。",
+  "core.astrodock.status8": "構成が無効です。コア、機関の接続、ドア、256部品の上限を確認してください。",
+  "core.astrodock.status9": "船外に空間が足りないか、艦を更新できませんでした。",
+  "core.astrodock.status10": "設備を反映しました。Hで艦に戻れます。",
+  "core.astrodock.status11": "外装を反映しました。スラスター未搭載のため停泊中です。"
 }

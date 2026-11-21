@@ -114,7 +114,7 @@ public final class ShipWrench extends Item {
         }
         var cabin=CabinRooms.level(l);if(cabin==null){message(p,"船室ディメンションがありません");return false;}
         Hull hull=new Hull(parts); if(hull.plant.error()!=null){message(p,hull.plant.error());return false;}
-        if (hull.engines==0) {message(p,"スラスターを1個以上含めてください");return false;}
+
         Ship ship=new Ship(ShipParts.SHIP.get(),l); ship.configure(hull,p.getUUID()); ship.setPos(core.getX()+0.5+hull.cx,core.getY()+hull.floor,core.getZ()+0.5+hull.cz);
         if (!l.addFreshEntity(ship)) return false;
         var db=CabinRooms.data(l);var room=db.allocate(a,b,core);ship.roomId=room.id;db.locate(room,ship);
@@ -136,6 +136,6 @@ public final class ShipWrench extends Item {
             cabin.updateNeighborsAt(room.core.offset(part.pos()),part.state().getBlock());
         }
         CabinRooms.ticket(cabin,new net.minecraft.world.level.ChunkPos(room.core));
-        p.startRiding(ship,true); message(p,"組み立て完了。Wで推進、ジャンプ長押しで上昇、A/Dで旋回、Hで作業船室へ"); return true;
+        p.startRiding(ship,true); message(p,hull.engines==0?"外装の船化完了。Hで船室に入り、設備を置いてコアで反映してください":"組み立て完了。Wで推進、ジャンプ長押しで上昇、A/Dで旋回、Hで作業船室へ"); return true;
     }
 }
