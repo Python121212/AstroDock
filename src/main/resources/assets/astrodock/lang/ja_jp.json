@@ -1,1 +1,8 @@
-{"item.astrodock.flight_capsule":"飛行カプセル","hud.astrodock.altitude":"高度 Y="}
+{
+  "item.astrodock.flight_capsule": "飛行カプセル",
+  "hud.astrodock.altitude": "高度 Y=",
+  "block.astrodock.ship_core": "艦船コア",
+  "block.astrodock.thruster": "スラスター",
+  "item.astrodock.ship_wrench": "艦船レンチ",
+  "entity.astrodock.ship": "自作艦"
+}
