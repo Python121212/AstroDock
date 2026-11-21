@@ -29,10 +29,12 @@ public final class ShipWrench extends Item {
     static void message(Player p,String s) { p.displayClientMessage(Component.literal(s),true); }
     @Override public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext c) {
         Player p=c.getPlayer(); Level l=c.getLevel(); BlockPos pos=c.getClickedPos();
-        if (p==null || p.isSpectator() || !p.getAbilities().mayBuild || !AstroDock.supported(l)) return InteractionResult.PASS;
+        if (p==null || p.isSpectator() || !p.getAbilities().mayBuild || !(AstroDock.supported(l) || l.dimension()==CabinRooms.LEVEL)) return InteractionResult.PASS;
         if (p.getVehicle() instanceof Ship ship) { if (!l.isClientSide) ship.dock((ServerPlayer)p); return InteractionResult.SUCCESS; }
         CompoundTag t=stack.getTagElement(EDIT);
         boolean plant=l.getBlockState(pos).is(ShipParts.PLANT.get());
+        // 船室内では機関範囲だけを設定可能。艦を入れ子にしない。
+        if(l.dimension()==CabinRooms.LEVEL && !(t==null?plant:t.getBoolean("plant")))return InteractionResult.PASS;
         if (t==null && !plant && !l.getBlockState(pos).is(ShipParts.CORE.get())) return InteractionResult.PASS;
         if (l.isClientSide) return InteractionResult.SUCCESS;
         if (t==null) {
@@ -107,14 +109,10 @@ public final class ShipWrench extends Item {
         for(var part:parts) cells.put(core.offset(part.pos()),part.state());
         var exposed=HullDoors.exposed(cells,CabinRooms.min(a,b),CabinRooms.max(a,b));
         if(exposed!=null) {message(p,"外壁には艦外ドアまたは艦外トラップドアを使用してください: "+exposed.toShortString());return false;}
-        for(var e:cells.entrySet()) if(e.getValue().getBlock() instanceof net.minecraft.world.level.block.DoorBlock) {
-            boolean lower=e.getValue().getValue(net.minecraft.world.level.block.DoorBlock.HALF)==net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER;
-            var other=cells.get(lower?e.getKey().above():e.getKey().below());
-            if(other==null || !other.is(e.getValue().getBlock())) {message(p,"ドアは上下両方を選択してください");return false;}
-        }
+        if(!HullDoors.completePairs(cells)){message(p,"ドアは上下両方を選択してください");return false;}
         var cabin=CabinRooms.level(l);if(cabin==null){message(p,"船室ディメンションがありません");return false;}
         Hull hull=new Hull(parts); if(hull.plant.error()!=null){message(p,hull.plant.error());return false;}
-        if (hull.engines==0) {message(p,"スラスターを1個以上含めてください");return false;}
+
         Ship ship=new Ship(ShipParts.SHIP.get(),l); ship.configure(hull,p.getUUID()); ship.setPos(core.getX()+0.5+hull.cx,core.getY()+hull.floor,core.getZ()+0.5+hull.cz);
         if (!l.addFreshEntity(ship)) return false;
         var db=CabinRooms.data(l);var room=db.allocate(a,b,core);ship.roomId=room.id;db.locate(room,ship);
@@ -136,6 +134,6 @@ public final class ShipWrench extends Item {
             cabin.updateNeighborsAt(room.core.offset(part.pos()),part.state().getBlock());
         }
         CabinRooms.ticket(cabin,new net.minecraft.world.level.ChunkPos(room.core));
-        p.startRiding(ship,true); message(p,"組み立て完了。Wで推進、ジャンプ長押しで上昇、A/Dで旋回、Hで作業船室へ"); return true;
+        p.startRiding(ship,true); message(p,hull.engines==0?"外装の船化完了。Hで船室に入り、設備を置いてコアで反映してください":"組み立て完了。Wで推進、ジャンプ長押しで上昇、A/Dで旋回、Hで作業船室へ"); return true;
     }
 }

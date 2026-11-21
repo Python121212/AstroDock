@@ -44,5 +44,21 @@
   "block.astrodock.power_unit": "Power Unit",
   "block.astrodock.generator": "Generator",
   "block.astrodock.cooling_unit": "Cooling Unit",
-  "hud.astrodock.power_grid": "Output %s | Drive %s | Spare %s | Heat %s/100"
+  "hud.astrodock.power_grid": "Output %s | Drive %s | Spare %s | Heat %s/100",
+  "core.astrodock.scan": "Survey interior",
+  "core.astrodock.confirm": "Confirm",
+  "core.astrodock.apply": "Apply refit",
+  "core.astrodock.count": "Hull: %s blocks / Interior: %s cells",
+  "core.astrodock.start": "Survey the sealed room beside this core and one layer of hull. Nothing moves until confirmed.",
+  "core.astrodock.work": "Apply the cabin layout to the ship. Riders must leave the helm and deck first.",
+  "core.astrodock.status2": "No unique sealed room found. Close gaps, put the core beside the room, or select manually with the wrench.",
+  "core.astrodock.status3": "Hull changed. Survey again.",
+  "core.astrodock.status4": "Assembly refused. Check permissions, parts and limits.",
+  "core.astrodock.status5": "Only the owner at the linked cabin core can refit.",
+  "core.astrodock.status6": "Loading ship. Please retry.",
+  "core.astrodock.status7": "Riders must leave the helm and deck first.",
+  "core.astrodock.status8": "Invalid refit. Check cores, engine links, doors and the 256-part limit.",
+  "core.astrodock.status9": "Not enough space outside or the ship could not be replaced.",
+  "core.astrodock.status10": "Refit complete. Press H to return.",
+  "core.astrodock.status11": "Hull updated. No thrusters: ship remains moored."
 }

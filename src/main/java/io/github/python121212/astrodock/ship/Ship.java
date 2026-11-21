@@ -72,7 +72,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         return localBounds==null ? super.makeBoundingBox() : localBounds.move(getX(),getY(),getZ());
     }
     @Override public double getPassengersRidingOffset() { return localBounds==null?1:localBounds.maxY; }
-    public boolean engineOn() {return entityData.get(ENGINE_ON);}
+    public boolean engineOn() {return hull!=null && hull.engines>0 && entityData.get(ENGINE_ON);}
     public boolean customEngine(){return hull!=null && hull.plant.custom();}
     public int heat(){return entityData.get(TEMPERATURE)%128;}
     public boolean derated(){return entityData.get(TEMPERATURE)>=128;}
@@ -297,6 +297,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         if(captain==null && ownerWalking()) entityData.set(ON_DECK,false);
         ServerPlayer pilot=engineOn() && !ownerWalking()?captain:null;
         float supply=allocatePower(pilot,level().getGameTime());
+        if(roomId!=0 && hull.engines==0){setDeltaMovement(Vec3.ZERO);body.momentum.zero();return;}
         double altitude=AstroDock.altitude(level(),getY());
         // 接地・無人・静止中は10 tickごとの支持面確認だけにする。
         if (!isVehicle() && onGround() && getDeltaMovement().lengthSqr()==0 && body.momentum.lengthSquared()==0
@@ -366,6 +367,33 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             player.startRiding(next,true);next.positionRider(player);player.fallDistance=0;
         }
         discard();return next;
+    }
+    /** 船室の実ブロックは動かさず、飛行用スナップショットだけを交換する。
+     * 新しいエンティティの通常のスポーン同期で、追跡中の全員に新しい外観を配る。 */
+    int refit(ServerPlayer p,CabinRooms.Room r){
+        if(isRemoved() || !isOwner(p) || r.id!=roomId || CabinRooms.visitedCore(p,r.core)!=r)return 5;
+        if(isVehicle())return 7;
+        var cabin=p.serverLevel();var cells=r.cells(cabin);
+        if(!cabin.getBlockState(r.core).is(ShipParts.CORE.get()) || cells.size()>ShipWrench.MAX_PARTS || HullDoors.exposed(cells,r.lo,r.hi)!=null || !HullDoors.completePairs(cells))return 8;
+        var parts=new ArrayList<Hull.Part>();long ready=0;
+        for(var e:cells.entrySet()){
+            var pos=e.getKey();var state=e.getValue();float strength=state.getDestroySpeed(cabin,pos);
+            if(strength<0 || state.is(ShipParts.CORE.get()) && !pos.equals(r.core))return 8;
+            var tile=cabin.getBlockEntity(pos);var range=tile instanceof EngineAnchor anchor?anchor.range:null;
+            parts.add(new Hull.Part(pos.subtract(r.core),state,1+Math.min(8,strength),range));
+            if(tile instanceof CannonMount mount)ready=Math.max(ready,mount.readyAt());
+        }
+        Hull h=new Hull(parts);if(h.plant.error()!=null){ShipWrench.message(p,h.plant.error());return 8;}
+        var l=(ServerLevel)level();Ship next=new Ship(ShipParts.SHIP.get(),l);next.body.copyFrom(body);next.configure(h,owner);next.syncAttitude();
+        // 保持するのは重心ではなく船体原点。質量配分・最下層が変わっても船体が飛ばない。
+        var offset=body.attitude.transform(new Vector3f((float)(h.cx-hull.cx),(float)(h.cy-hull.cy),(float)(h.cz-hull.cz)));
+        next.moveTo(getX()+offset.x,getY()+hull.pivotHeight-h.pivotHeight+offset.y,getZ()+offset.z,getYRot(),getXRot());
+        next.setDeltaMovement(h.engines==0?Vec3.ZERO:getDeltaMovement());next.roomId=r.id;
+        System.arraycopy(nextShot,0,next.nextShot,0,nextShot.length);next.restoreCannonCooldown(ready);
+        next.entityData.set(ENGINE_ON,h.engines>0 && (hull.engines==0 || engineOn()));
+        next.entityData.set(TEMPERATURE,entityData.get(TEMPERATURE));next.entityData.set(LOAD,entityData.get(LOAD));
+        if(!l.getWorldBorder().isWithinBounds(next.getBoundingBox()) || !l.noCollision(next,next.getBoundingBox().deflate(.001)) || !l.addFreshEntity(next))return 9;
+        CabinRooms.data(l).locate(r,next);CabinRooms.follow(l,next.chunkPosition());discard();return h.engines==0?11:10;
     }
     void dock(ServerPlayer p) {
         if (ownerWalking() || !p.getUUID().equals(owner) || !p.getAbilities().mayBuild || hull==null || isRemoved()) return;
