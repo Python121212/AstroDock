@@ -43,6 +43,7 @@
   "block.astrodock.engine_core": "Engine Core",
   "block.astrodock.power_unit": "Power Unit",
   "block.astrodock.generator": "Generator",
+  "block.astrodock.gravity_controller": "Gravity Controller (Inertial Stabilizer)",
   "block.astrodock.cooling_unit": "Cooling Unit",
   "hud.astrodock.power_grid": "Output %s | Drive %s | Spare %s | Heat %s/100",
   "core.astrodock.scan": "Survey interior",

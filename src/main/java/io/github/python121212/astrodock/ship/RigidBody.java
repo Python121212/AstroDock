@@ -36,10 +36,14 @@ final class RigidBody {
 
         // Σ(r × F) は同じ推力を受けるエンジンの腕の和から一度で求められる。
         float steering = h.engines * 0.65f * supply;
-        tmp.set(h.armY*fz-h.armZ*fy + steering*Math.abs(throttle)*Mth.clamp(pitchError,-1,1),
-                -h.armX*fz + steering*yaw, h.armX*fy + steering*roll);
-        attitude.transform(tmp);
-        momentum.mul(1-0.1f*air).add(tmp);
+        if (h.hasGravityController && supply>0 && h.engines>0) {
+            stabilize(h,yaw,roll,supply);
+        } else {
+            tmp.set(h.armY*fz-h.armZ*fy + steering*Math.abs(throttle)*Mth.clamp(pitchError,-1,1),
+                    -h.armX*fz + steering*yaw, h.armX*fy + steering*roll);
+            attitude.transform(tmp);
+            momentum.mul(1-0.1f*air).add(tmp);
+        }
         if (momentum.lengthSquared()>1e-14f) {
             attitude.transformInverse(momentum,tmp);
             h.inverseInertia.transform(tmp); // 機体座標の角速度（rad/tick）
@@ -53,6 +57,21 @@ final class RigidBody {
             attitude.mul(aX,aY,aZ,1).normalize();
         } else momentum.zero();
         return new Vec3(x*limit,y*limit,z*limit);
+    }
+    // 偏心推力のトルクを相殺し、世界の上方向へ戻す角速度を機体座標で求める。
+    // 速度と重力は変更せず、出力が切れれば通常の角運動量積分へ戻る。
+    private void stabilize(Hull h,float yaw,float roll,float supply) {
+        attitude.transformInverse(tmp.set(0,1,0));
+        float tilt=(float)Math.hypot(tmp.x,tmp.z);
+        float rate=Math.min(.07f,.12f*(float)Math.atan2(tilt,tmp.y));
+        float pitchRate=tilt>1e-5f?rate*tmp.z/tilt:(tmp.y<0?rate:0);
+        float rollRate=roll!=0?.09f*roll:(tilt>1e-5f?-rate*tmp.x/tilt:0);
+        attitude.transformInverse(momentum,tmp);
+        h.inverseInertia.transform(tmp);
+        float gain=.4f*supply;
+        tmp.add(gain*(pitchRate-tmp.x),gain*(.08f*yaw-tmp.y),gain*(rollRate-tmp.z));
+        h.inertiaTensor.transform(tmp);
+        attitude.transform(tmp,momentum);
     }
     float helmYaw(Hull hull, float current, float desired) {
         // 機首と視線の短い側の角度差を使う。回転速度をフィードバックして振れを抑える。

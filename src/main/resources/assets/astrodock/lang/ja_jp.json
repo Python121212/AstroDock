@@ -43,6 +43,7 @@
   "block.astrodock.engine_core": "エンジンコア",
   "block.astrodock.power_unit": "動力部",
   "block.astrodock.generator": "発電部",
+  "block.astrodock.gravity_controller": "重力制御装置（慣性制御）",
   "block.astrodock.cooling_unit": "冷却部",
   "hud.astrodock.power_grid": "発電 %s ｜ 推進 %s ｜ 余剰 %s ｜ 熱 %s/100",
   "core.astrodock.scan": "内部を船化",

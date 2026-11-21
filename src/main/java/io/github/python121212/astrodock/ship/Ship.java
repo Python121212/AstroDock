@@ -364,7 +364,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         if (hull.hasHelm && pilot!=null && pilot.zza!=0 && lateral==0 && !roll)
             yaw=body.helmYaw(hull,getYRot(),pilot.getYRot());
         Vec3 velocity=body.step(hull,getDeltaMovement(),altitude,pilot==null?0:pilot.zza,
-                pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, yaw, roll?lateral:0, pilot!=null && pilot.jumping,supply);
+                pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, yaw, roll?lateral:0, pilot!=null && pilot.jumping,engineOn()?supply:0);
         boolean rotated=!previous.equals(body.attitude);
         AABB beforeBox=getBoundingBox();
         if (rotated) refreshBounds();
