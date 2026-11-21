@@ -169,13 +169,14 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
                 nextShot[w.ordinal()]=now+w.delay;
                 if(!ammo.isEmpty())ammo.shrink(1);
                 if(w==ShipWeapon.CANNON && roomId!=0) {
-                    var r=room();if(r!=null && CabinRooms.level(level).getBlockEntity(r.core.offset(part.pos())) instanceof CannonMount mount)mount.fired();
+                    var r=room();if(r!=null && CabinRooms.level(level).getBlockEntity(r.core.offset(part.pos())) instanceof CannonMount mount)mount.fired(nextShot[w.ordinal()]);
                 }
                 level.playSound(null,blockPosition(),w.sound,net.minecraft.sounds.SoundSource.PLAYERS,1,.8f);
             }return;
         }
         p.displayClientMessage(Component.translatable(installed?"hint.astrodock.muzzle_blocked":"hint.astrodock.no_mount",w.mount.get().getName()),true);
     }
+    void restoreCannonCooldown(long readyAt){int k=ShipWeapon.CANNON.ordinal();nextShot[k]=Math.max(nextShot[k],readyAt);}
     private void toggleEngine(ServerPlayer p) {
         entityData.set(ENGINE_ON,!engineOn());
         p.displayClientMessage(Component.translatable(engineOn()?"hud.astrodock.engine_on":"hud.astrodock.engine_off"),true);
