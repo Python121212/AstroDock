@@ -38,7 +38,7 @@ Minecraft **1.20.1**・Forge **47.3.0** 用の高高度飛行 Mod です。オ�
 
 ## ビルドと確認
 
-JDK 17 を用意し、リポジトリ直下で `./gradlew clean build`（Windows は `.\gradlew.bat clean build`）を実行します。初回は依存ファイルの取得にインターネット接続が必要です。出力は `build/libs/astrodock-0.2.0.jar` です。Forge を導入したゲームの `mods` に入れてください。マルチプレイではサーバーとクライアントの両方に必要です。
+JDK 17 を用意し、リポジトリ直下で `./gradlew clean build`（Windows は `.\gradlew.bat clean build`）を実行します。初回は依存ファイルの取得にインターネット接続が必要です。出力は `build/libs/astrodock-0.3.0.jar` です。Forge を導入したゲームの `mods` に入れてください。マルチプレイではサーバーとクライアントの両方に必要です。
 
 - `build` は描画準備、失速、酸欠、低重力の境界値テストも実行します。プッシュ後は GitHub Actions「Mod のビルド」の成果物 `AstroDock` から JAR を取得できます。
 - 開発クライアントは `./gradlew runClient` で起動します。動作確認には新規クリエイティブワールドを推奨します。`/tp @s 100 4995 100` からカプセルで上昇し、宇宙での F3 のディメンション名、連続高度、降下時の帰還を確認できます。

@@ -1,1 +1,8 @@
-{"item.astrodock.flight_capsule":"Flight Capsule","hud.astrodock.altitude":"Altitude Y="}
+{
+  "item.astrodock.flight_capsule": "Flight Capsule",
+  "hud.astrodock.altitude": "Altitude Y=",
+  "block.astrodock.ship_core": "Ship Core",
+  "block.astrodock.thruster": "Thruster",
+  "item.astrodock.ship_wrench": "Ship Wrench",
+  "entity.astrodock.ship": "Assembled Ship"
+}

@@ -32,6 +32,7 @@ public final class FlightEvents {
             if (!supported || !sp.isAlive()) return;
             if (!sp.isPassenger() && crossBoundary(sp, y)) return;
             int interval = Atmosphere.hypoxiaInterval(y);
+            if (sp.getVehicle() instanceof io.github.python121212.astrodock.ship.Ship) return;
             if (interval > 0 && !sp.isCreative() && !sp.isSpectator()
                     && !sp.isHolding(AstroDock.CAPSULE.get()) && sp.tickCount % interval == 0) {
                 sp.hurt(sp.damageSources().drown(), 2);
