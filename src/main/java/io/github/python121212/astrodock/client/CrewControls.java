@@ -29,12 +29,12 @@ public final class CrewControls {
         var mc=Minecraft.getInstance();
         Ship ship=mc.screen==null && mc.player!=null && mc.player.getVehicle() instanceof Ship s?s:null;
         if(!mc.options.keyUse.isDown() || ship==null) usedPanel=false;
-        while(ENGINE.consumeClick()) if(ship!=null) ShipCommand.send(ship,ShipCommand.Action.ENGINE);
-        while(SEAT.consumeClick()) if(ship!=null) ShipCommand.send(ship,ShipCommand.Action.SEAT);
+        while(ENGINE.consumeClick()) if(ship!=null && ship.isOwner(mc.player)) ShipCommand.send(ship,ShipCommand.Action.ENGINE);
+        while(SEAT.consumeClick()) if(ship!=null && ship.isOwner(mc.player)) ShipCommand.send(ship,ShipCommand.Action.SEAT);
     }
     @SubscribeEvent public static void use(InputEvent.InteractionKeyMappingTriggered e) {
         var p=Minecraft.getInstance().player;
-        if(!e.isUseItem() || p==null || !(p.getVehicle() instanceof Ship ship) || !ship.walking()) return;
+        if(!e.isUseItem() || p==null || !(p.getVehicle() instanceof Ship ship) || !ship.walking(p)) return;
         // 船体はワールドのブロックではない。艦内の右クリックを船外のブロックに通さない。
         e.setCanceled(true); e.setSwingHand(false);
         if(e.getHand()==InteractionHand.MAIN_HAND && !usedPanel && ship.hasPanelInSight(p)) {

@@ -19,5 +19,8 @@
   "hud.astrodock.engine_off": "Engine: OFF",
   "hud.astrodock.at_helm": "Helm | %s",
   "hud.astrodock.on_deck": "On deck | %s",
-  "hint.astrodock.no_deck": "No standing room (leave two blocks of headroom above a floor)"
+  "hint.astrodock.no_deck": "No standing room (leave two blocks of headroom above a floor)",
+  "hud.astrodock.guest": "Crew | %s",
+  "hint.astrodock.crew_full": "No passenger slot or clear boarding space available",
+  "hint.astrodock.crew_aboard": "Passengers must disembark before docking"
 }
