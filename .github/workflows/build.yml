@@ -1,5 +1,12 @@
 name: Mod のビルド
-on: [push, workflow_dispatch]
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'main でテスト済み JAR をリリースする'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -13,10 +20,11 @@ jobs:
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew build --no-daemon
-      - name: 宇宙ディメンションの建築テスト
+      - name: 宇宙での建築・艦船テスト
         run: |
           ./gradlew runGameTestServer --no-daemon
           grep -F 'AstroDock orbit placement verified' build/gametest/logs/latest.log
+          grep -F 'AstroDock ship round trip verified' build/gametest/logs/latest.log
         timeout-minutes: 8
       - name: JAR の内容を確認
         run: |
@@ -28,3 +36,22 @@ jobs:
           name: AstroDock
           path: build/libs/*.jar
           if-no-files-found: error
+
+  release:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: AstroDock
+          path: release
+      - name: テスト済みの JAR を公開
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(sed -n 's/^mod_version=//p' gradle.properties)
+          gh release create "v$version" "release/astrodock-$version.jar" --target "$GITHUB_SHA" --title "AstroDock $version" --notes 'Minecraft 1.20.1・Forge 47.3.0 用です。JAR を mods フォルダーに入れてください。'

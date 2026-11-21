@@ -25,7 +25,11 @@ public final class SelectionPreview {
         if(t.contains("b"))for(BlockPos p:BlockPos.betweenClosed(a,b)) {
             if(mc.level.isEmptyBlock(p))continue;
             boolean on=ShipWrench.selected(t,p);
-            LevelRenderer.renderLineBox(poses,lines,on?new AABB(p).inflate(0.004):new AABB(p).deflate(0.17),on?0.1f:0.58f,on?0.9f:0.58f,on?1:0.58f,1);
+            if (on) LevelRenderer.renderLineBox(poses,lines,new AABB(p).inflate(0.004),0.1f,0.9f,1,1);
+            else for (int corner=0;corner<8;corner++) {
+                double x=p.getX()+((corner&1)==0?0.08:0.92), y=p.getY()+((corner&2)==0?0.08:0.92), z=p.getZ()+((corner&4)==0?0.08:0.92);
+                LevelRenderer.renderLineBox(poses,lines,new AABB(x-.086,y-.086,z-.086,x+.086,y+.086,z+.086),0.6f,0.6f,0.6f,1);
+            }
         }
         buffers.endBatch(RenderType.lines());poses.popPose();
     }

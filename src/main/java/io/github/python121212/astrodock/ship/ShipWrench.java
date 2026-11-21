@@ -46,19 +46,25 @@ public final class ShipWrench extends Item {
         else if (!t.contains("b")) {
             BlockPos a=BlockPos.of(t.getLong("a"));
             if (!validRange(a,pos,core)) message(p,"コアを含む512マス以内の範囲を指定してください（各辺16以下）");
-            else { t.putLong("b",pos.asLong()); message(p,"右クリックで選択を反転、コアを右クリックで組み立て"); }
+            else { t.putLong("b",pos.asLong()); message(p,"選択中: "+count(t,l)+"。右クリックで反転、コアを右クリックで組み立て"); }
         } else if (pos.equals(core)) {
             if (assemble((ServerLevel)l,(ServerPlayer)p,t)) stack.removeTagKey(EDIT);
         } else if (inside(t,pos)) {
             long key=pos.asLong(); Set<Long> toggles=new HashSet<>(); for(long v:t.getLongArray("toggle")) toggles.add(v);
             if (!toggles.remove(key)) toggles.add(key); t.putLongArray("toggle",new ArrayList<>(toggles));
-            message(p,selected(t,pos)?"船体に追加":"船体から除外");
+            message(p,(selected(t,pos)?"船体に追加":"船体から除外")+"（選択中: "+count(t,l)+"）");
         } else message(p,"設定範囲の外です");
         return InteractionResult.SUCCESS;
     }
     public static boolean validRange(BlockPos a,BlockPos b,BlockPos core) {
         long x=Math.abs((long)a.getX()-b.getX())+1,y=Math.abs((long)a.getY()-b.getY())+1,z=Math.abs((long)a.getZ()-b.getZ())+1;
         return x<=16 && y<=16 && z<=16 && x*y*z<=MAX_VOLUME && new AABB(a,b).inflate(0.01).contains(core.getX(),core.getY(),core.getZ());
+    }
+    private static int count(CompoundTag t, Level l) {
+        int n=0;
+        for (BlockPos p:BlockPos.betweenClosed(BlockPos.of(t.getLong("a")),BlockPos.of(t.getLong("b"))))
+            if (selected(t,p) && l.hasChunkAt(p) && !l.isEmptyBlock(p)) n++;
+        return n;
     }
     private static boolean inside(CompoundTag t, BlockPos p) { return validRange(BlockPos.of(t.getLong("a")),BlockPos.of(t.getLong("b")),p); }
     @Override public InteractionResultHolder<ItemStack> use(Level l,Player p,InteractionHand hand) {
