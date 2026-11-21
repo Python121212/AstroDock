@@ -29,6 +29,8 @@ import net.minecraft.core.Direction;
 
 public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     private Hull hull;
+    int roomId; // 0 は 0.9 以前の船体
+    private CabinRooms.Room room() {return roomId==0?null:CabinRooms.data((ServerLevel)level()).get(roomId);}
     private UUID owner;
     private static final EntityDataAccessor<Quaternionf> ROTATION = SynchedEntityData.defineId(Ship.class, EntityDataSerializers.QUATERNION);
     private static final EntityDataAccessor<Boolean> ENGINE_ON=SynchedEntityData.defineId(Ship.class,EntityDataSerializers.BOOLEAN);
@@ -111,7 +113,11 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         return isOwner(p) && b!=null && (b.is(ShipParts.HELM.get()) || b.is(ShipParts.CORE.get()) || b.is(ShipParts.CONSOLE.get()));
     }
     void command(ServerPlayer p,ShipCommand.Action action) {
-        if (hull==null || isRemoved() || !p.isAlive() || p.isSpectator() || !p.getUUID().equals(owner) || p.getVehicle()!=this) return;
+        if (hull==null || isRemoved() || !p.isAlive() || p.isSpectator() || p.getVehicle()!=this) return;
+        if(action==ShipCommand.Action.CABIN) {
+            var r=room();if(r!=null) CabinRooms.enter(this,p,r);else ShipWrench.message(p,"作業船室を使うには艦を再組み立てしてください");return;
+        }
+        if(!isOwner(p))return;
         switch(action) {
             case ENGINE -> { if(!ownerWalking()) toggleEngine(p); }
             case SEAT -> {
@@ -143,7 +149,11 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     }
     @Override public boolean shouldRiderSit() {return !ownerWalking() && getPassengers().size()==1 && isOwner(getFirstPassenger());}
     @Override protected boolean canAddPassenger(Entity p) {
-        return p instanceof Player && hull!=null && (isOwner(p) || (vacant()!=null && freeEntrance()!=null));
+        if(!(p instanceof Player) || hull==null)return false;
+        if(isOwner(p))return true;
+        CabinRooms.Room r=level().isClientSide?null:room();
+        long guests=getPassengers().stream().filter(v->!isOwner(v)).count()+(r==null?0:r.visitors.stream().filter(id->!id.equals(owner)).count());
+        return guests<3 && vacant()!=null && freeEntrance()!=null;
     }
     @Override protected void addPassenger(Entity p) {
         super.addPassenger(p);
@@ -194,6 +204,10 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             if (!previous.equals(body.attitude)) refreshBounds();
             if(steps>0) {setYRot(getYRot()+Mth.wrapDegrees(targetYaw-getYRot())/steps);setPos(getX()+(tx-getX())/steps,getY()+(ty-getY())/steps,getZ()+(tz-getZ())/steps);steps--;}
             return;
+        }
+        if(roomId!=0) {
+            var d=CabinRooms.data((ServerLevel)level());var r=d.get(roomId);
+            if(r!=null) {d.locate(r,this);if(tickCount%20==0) CabinRooms.ticket(CabinRooms.level((ServerLevel)level()),new net.minecraft.world.level.ChunkPos(r.core));}
         }
         ServerPlayer captain=null;
         for(Entity passenger:getPassengers()) if(passenger instanceof ServerPlayer rider) {
@@ -264,6 +278,8 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             next.entityData.set(g.id,entityData.get(g.id));next.entityData.set(g.feet,new Vector3f(entityData.get(g.feet)));
         }
         if (!to.noCollision(next,next.getBoundingBox()) || !to.addFreshEntity(next)) {setDeltaMovement(Vec3.ZERO);return null;}
+        next.roomId=roomId;
+        if(roomId!=0){var d=CabinRooms.data(from);var r=d.get(roomId);if(r!=null)d.locate(r,next);}
         // 降船時に元の席情報が消えるので、先に全員分を転送先に複製する。
         for(Entity rider:List.copyOf(getPassengers())) if(rider instanceof ServerPlayer player) {
             Vec3 look=passage.rotate(player.getLookAngle());
@@ -278,16 +294,31 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         if (getPassengers().stream().anyMatch(r->r!=p)) {p.displayClientMessage(Component.translatable("hint.astrodock.crew_aboard"),true);return;}
         if (getDeltaMovement().length()>0.45) {ShipWrench.message(p,"減速してから再設置してください");return;}
         ServerLevel l=(ServerLevel)level();
+        var cabin=CabinRooms.level(l);var room=room();
+        if(roomId!=0 && room==null){ShipWrench.message(p,"船室データを読み込めません");return;}
+        Map<BlockPos,BlockState> local=new LinkedHashMap<>();
+        if(room!=null) {
+            if(!room.visitors.isEmpty()){ShipWrench.message(p,"作業船室の乗員が戻ってから再設置してください");return;}
+            var cells=room.cells(cabin);
+            if(cells.size()>ShipWrench.MAX_PARTS || !cabin.getBlockState(room.core).is(ShipParts.CORE.get()) || HullDoors.exposed(cells,room.lo,room.hi)!=null){
+                ShipWrench.message(p,"船室を確認してください（256ブロックまで、コア必須、外壁は艦外用ドアのみ）");return;
+            }
+            for(var pos:BlockPos.betweenClosed(room.lo.atY(room.hi.getY()+1),room.hi.above(2))) if(!cabin.isEmptyBlock(pos)) {
+                ShipWrench.message(p,"選択範囲より上のブロックを片付けてください");return;
+            }
+            if(!cabin.getEntities(this,new AABB(room.lo,room.hi.offset(1,3,1))).isEmpty()) {ShipWrench.message(p,"船室内のアイテムや生物を先に回収してください");return;}
+            cells.forEach((pos,state)->local.put(pos.subtract(room.core),state));
+        } else for(var part:hull.parts)local.put(part.pos(),part.state());
         Rotation rot=Rotation.values()[Math.floorMod(Math.round(getYRot()/90f),4)];
         Vec3 center=new Vec3(hull.cx,0,hull.cz).yRot(-Math.round(getYRot()/90f)*90*Mth.DEG_TO_RAD);
         BlockPos core=BlockPos.containing(getX()-center.x,getY()-hull.floor+0.5,getZ()-center.z);
         Map<BlockPos,BlockState> placement=new LinkedHashMap<>();
-        for (Hull.Part part:hull.parts) {
-            BlockPos pos=core.offset(part.pos().rotate(rot));
+        for (var part:local.entrySet()) {
+            BlockPos pos=core.offset(part.getKey().rotate(rot));
             if (l.isOutsideBuildHeight(pos) || !l.hasChunkAt(pos) || !l.getWorldBorder().isWithinBounds(pos) || !l.mayInteract(p,pos) || !l.isEmptyBlock(pos)) {
                 ShipWrench.message(p,"再設置できません。建築可能な空間に移動してください");return;
             }
-            placement.put(pos,part.state().rotate(rot));
+            placement.put(pos,part.getValue().rotate(rot));
         }
         List<BlockSnapshot> snapshots=new ArrayList<>();
         for(var e:placement.entrySet()) {
@@ -297,6 +328,12 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             for(BlockSnapshot snapshot:snapshots) snapshot.restore(true,false);
             ShipWrench.message(p,"保護された場所には再設置できません");return;
         }
+        if(room!=null) {
+            for(var pos:local.keySet()) CabinRooms.copyData(cabin,room.core.offset(pos),l,core.offset(pos.rotate(rot)));
+            for(var pos:local.keySet()) CabinRooms.erase(cabin,room.core.offset(pos));
+            room.walls(cabin,false);CabinRooms.data(l).forget(room);
+        }
+        placement.forEach((pos,state)->l.updateNeighborsAt(pos,state.getBlock()));
         boolean riding=p.getVehicle()==this;
         ejectPassengers(); if(riding) p.teleportTo(core.getX()+0.5,core.getY()+hull.floor+hull.height,core.getZ()+0.5);
         discard();ShipWrench.message(p,"船体を再設置しました");
@@ -307,6 +344,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     }
     private void syncAttitude() { previous.set(body.attitude);entityData.set(ROTATION,new Quaternionf(body.attitude)); }
     @Override protected void addAdditionalSaveData(CompoundTag t) {
+        t.putInt("room",roomId);
         if(hull!=null) t.put("parts",hull.save()); if(owner!=null)t.putUUID("owner",owner);
         t.putBoolean("engineOn",engineOn());
         if(ownerWalking()) {var feet=entityData.get(FEET);t.putFloat("deckX",feet.x);t.putFloat("deckY",feet.y);t.putFloat("deckZ",feet.z);}
@@ -322,6 +360,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     }
     @Override protected void readAdditionalSaveData(CompoundTag t) {
         if(!t.contains("parts") || !t.hasUUID("owner")) return;
+        roomId=t.getInt("room");
         Hull loaded=Hull.load(t.getList("parts",Tag.TAG_COMPOUND),level());
         if (t.contains("qw")) {
             body.attitude.set(t.getFloat("qx"),t.getFloat("qy"),t.getFloat("qz"),t.getFloat("qw"));

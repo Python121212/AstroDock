@@ -88,17 +88,36 @@ public final class ShipWrench extends Item {
             if (!l.hasChunkAt(pos) || !l.getWorldBorder().isWithinBounds(pos)) {message(p,"読み込み済みの範囲内で設定してください");return false;}
             var state=l.getBlockState(pos); if (state.isAir()) continue;
             float hardness=state.getDestroySpeed(l,pos);
-            if (state.hasBlockEntity() || !state.getFluidState().isEmpty() || hardness<0 || (!state.is(ShipParts.HELM.get()) && !state.isCollisionShapeFullBlock(l,pos))
+            if (hardness<0
                     || !l.mayInteract(p,pos) || MinecraftForge.EVENT_BUS.post(new BlockEvent.BreakEvent(l,pos,state,p))) {
                 message(p,"移動できないブロックです。除外してください: "+pos.toShortString()); return false;
             }
             parts.add(new Hull.Part(pos.subtract(core),state,1+Math.min(8,hardness)));
             if (parts.size()>MAX_PARTS) {message(p,"船体は256ブロックまでです");return false;}
         }
+        Map<BlockPos,net.minecraft.world.level.block.state.BlockState> cells=new HashMap<>();
+        for(var part:parts) cells.put(core.offset(part.pos()),part.state());
+        var exposed=HullDoors.exposed(cells,CabinRooms.min(a,b),CabinRooms.max(a,b));
+        if(exposed!=null) {message(p,"外壁には艦外ドアまたは艦外トラップドアを使用してください: "+exposed.toShortString());return false;}
+        for(var e:cells.entrySet()) if(e.getValue().getBlock() instanceof net.minecraft.world.level.block.DoorBlock) {
+            boolean lower=e.getValue().getValue(net.minecraft.world.level.block.DoorBlock.HALF)==net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER;
+            var other=cells.get(lower?e.getKey().above():e.getKey().below());
+            if(other==null || !other.is(e.getValue().getBlock())) {message(p,"ドアは上下両方を選択してください");return false;}
+        }
+        var cabin=CabinRooms.level(l);if(cabin==null){message(p,"船室ディメンションがありません");return false;}
         Hull hull=new Hull(parts); if (hull.engines==0) {message(p,"スラスターを1個以上含めてください");return false;}
         Ship ship=new Ship(ShipParts.SHIP.get(),l); ship.configure(hull,p.getUUID()); ship.setPos(core.getX()+0.5+hull.cx,core.getY()+hull.floor,core.getZ()+0.5+hull.cz);
         if (!l.addFreshEntity(ship)) return false;
-        for (Hull.Part part:parts) l.setBlock(core.offset(part.pos()),Blocks.AIR.defaultBlockState(),2|16|32);
-        p.startRiding(ship,true); message(p,"組み立て完了。Wで推進、ジャンプ長押しで上昇、A/Dで旋回"); return true;
+        var db=CabinRooms.data(l);var room=db.allocate(a,b,core);ship.roomId=room.id;db.locate(room,ship);
+        room.walls(cabin,true);
+        for(var part:parts) cabin.setBlock(room.core.offset(part.pos()),part.state(),2|16|32);
+        for(var part:parts) CabinRooms.copyData(l,core.offset(part.pos()),cabin,room.core.offset(part.pos()));
+        for(var part:parts) CabinRooms.erase(l,core.offset(part.pos()));
+        for(var part:parts) {
+            l.updateNeighborsAt(core.offset(part.pos()),Blocks.AIR);
+            cabin.updateNeighborsAt(room.core.offset(part.pos()),part.state().getBlock());
+        }
+        CabinRooms.ticket(cabin,new net.minecraft.world.level.ChunkPos(room.core));
+        p.startRiding(ship,true); message(p,"組み立て完了。Wで推進、ジャンプ長押しで上昇、A/Dで旋回、Hで作業船室へ"); return true;
     }
 }

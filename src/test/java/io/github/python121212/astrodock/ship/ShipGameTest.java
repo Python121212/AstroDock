@@ -22,7 +22,6 @@ public class ShipGameTest {
         orbit.setBlockAndUpdate(engine,ShipParts.ENGINE.get().defaultBlockState());
         orbit.setBlockAndUpdate(excluded,Blocks.CHEST.defaultBlockState());
         CompoundTag t=new CompoundTag(); t.putLong("a",excluded.asLong());t.putLong("b",core.asLong());t.putLong("core",core.asLong());t.putBoolean("all",true);
-        test.assertTrue(!ShipWrench.assemble(orbit,pilot,t) && orbit.getBlockState(core).is(ShipParts.CORE.get()),"チェストを含む船は無変更で拒否する");
         t.putLongArray("toggle",new long[]{excluded.asLong()});
         test.assertTrue(ShipWrench.assemble(orbit,pilot,t),"組み立て失敗");
         Ship ship=(Ship)pilot.getVehicle(); Hull hull=ship.hull();

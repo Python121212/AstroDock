@@ -22,5 +22,8 @@
   "hint.astrodock.no_deck": "No standing room (leave two blocks of headroom above a floor)",
   "hud.astrodock.guest": "Crew | %s",
   "hint.astrodock.crew_full": "No passenger slot or clear boarding space available",
-  "hint.astrodock.crew_aboard": "Passengers must disembark before docking"
+  "hint.astrodock.crew_aboard": "Passengers must disembark before docking",
+  "block.astrodock.airlock_door": "Exterior Airlock Door",
+  "block.astrodock.exterior_hatch": "Exterior Hatch",
+  "key.astrodock.cabin": "Enter / leave working cabin"
 }

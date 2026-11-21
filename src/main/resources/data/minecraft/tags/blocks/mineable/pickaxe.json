@@ -4,6 +4,8 @@
     "astrodock:ship_core",
     "astrodock:thruster",
     "astrodock:helm",
-    "astrodock:engine_console"
+    "astrodock:engine_console",
+    "astrodock:airlock_door",
+    "astrodock:exterior_hatch"
   ]
 }
