@@ -23,7 +23,7 @@ jobs:
       - name: 宇宙での建築・艦船テスト
         run: |
           ./gradlew runGameTestServer --no-daemon || {
-            grep -Ei 'failed|exception|assertion|エラー' build/gametest/logs/latest.log | tail -12 | sed 's/^/::error::/'
+            grep -E 'LogTestReporter|GameTestServer.*failed'  build/gametest/logs/latest.log | tail -12 | sed 's/^/::error::/'
             exit 1
           }
           grep -F 'AstroDock orbit placement verified' build/gametest/logs/latest.log

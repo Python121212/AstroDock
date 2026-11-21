@@ -43,10 +43,10 @@ public class PhysicsBench {
         // 空域比較は確実に空である読み込み済みの宇宙チャンクで実施する。
         ServerLevel empty=level.getServer().getLevel(io.github.python121212.astrodock.AstroDock.ORBIT);
         Ship observer=new Ship(ShipParts.SHIP.get(),empty);observer.configure(h,java.util.UUID.randomUUID());
+        for(int cx=19;cx<=21;cx++) for(int cz=19;cz<=21;cz++) empty.getChunk(cx,cz);
         for(int i=0;i<count;i++) {
-            boxes[i]=new AABB(new BlockPos(328+i%3,144,328+i%3)).inflate(h.radiusX,0.5*h.height,h.radiusZ);
-            empty.getChunkAt(new BlockPos(328,144,328));
-            if (!ClearFlight.clear(empty,observer,boxes[i]) || !empty.noCollision(observer,boxes[i])) throw new AssertionError("空域の測定条件が不正です");
+            boxes[i]=new AABB(new BlockPos(326+i%3,144,326+i%3)).inflate(h.radiusX,0.5*h.height,h.radiusZ);
+            if (!ClearFlight.clear(empty,observer,boxes[i]) || !empty.noCollision(observer,boxes[i])) throw new AssertionError("空域の測定条件が不正です: "+boxes[i]);
         }
         long emptyVanilla=median(64,()->{int hits=0;for(AABB b:boxes)if(empty.noCollision(observer,b))hits++;sink=hits;});
         long emptyFast=median(64,()->{int hits=0;for(AABB b:boxes)if(ClearFlight.clear(empty,observer,b))hits++;sink=hits;});
