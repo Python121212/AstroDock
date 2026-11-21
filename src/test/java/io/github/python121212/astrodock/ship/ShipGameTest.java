@@ -27,11 +27,12 @@ public class ShipGameTest {
         test.assertTrue(ShipWrench.assemble(orbit,pilot,t),"組み立て失敗");
         Ship ship=(Ship)pilot.getVehicle(); Hull hull=ship.hull();
         test.assertTrue(hull.parts.size()==2 && orbit.isEmptyBlock(core) && orbit.getBlockState(excluded).is(Blocks.CHEST),"除外または搭乗に失敗");
-        ShipMotion drift=new ShipMotion(new Vec3(1,0,0),0);
-        var accelerate=drift.step(hull,5000,0,1,0,0);
-        test.assertTrue(accelerate.spin()>0 && accelerate.velocity().z>0 && accelerate.velocity().x==1,"偏心推力と真空慣性");
+        RigidBody drift=new RigidBody();
+        var accelerate=drift.step(hull,new Vec3(1,0,0),5000,1,0,0,0);
+        test.assertTrue(drift.momentum.y<0 && accelerate.z>0 && accelerate.x==1,"偏心推力と真空慣性");
         Hull balanced=new Hull(List.of(hull.parts.get(0),new Hull.Part(new BlockPos(1,0,0),ShipParts.ENGINE.get().defaultBlockState(),2),new Hull.Part(new BlockPos(-1,0,0),ShipParts.ENGINE.get().defaultBlockState(),2)));
-        test.assertTrue(drift.step(balanced,320,0,1,0,0).spin()==0,"対称配置で回転が発生");
+        RigidBody straight=new RigidBody();straight.step(balanced,Vec3.ZERO,320,1,0,0,0);
+        test.assertTrue(straight.momentum.lengthSquared()==0,"対称配置で回転が発生");
         orbit.setBlockAndUpdate(engine,Blocks.OBSIDIAN.defaultBlockState());ship.dock(pilot);
         test.assertTrue(!ship.isRemoved() && orbit.isEmptyBlock(core),"着艦失敗時に部分設置された");
         orbit.removeBlock(engine,false);ship.dock(pilot);
