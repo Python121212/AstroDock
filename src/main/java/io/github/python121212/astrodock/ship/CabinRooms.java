@@ -64,7 +64,7 @@ public final class CabinRooms extends SavedData {
             r.chunk=c;r.dimension=dim;r.shipId=ship.getUUID();setDirty();
         }
     }
-    static void ticket(ServerLevel l,ChunkPos c) {l.getChunkSource().addRegionTicket(ACTIVE,c,2,c);}
+    static void ticket(ServerLevel l,ChunkPos c) {l.resetEmptyTime();l.getChunkSource().addRegionTicket(ACTIVE,c,2,c);}
     @Override public CompoundTag save(CompoundTag tag) {
         tag.putInt("next",next);var list=new ListTag();for(Room r:rooms.values()) {
             var t=new CompoundTag();t.putInt("id",r.id);t.putLong("lo",r.lo.asLong());t.putLong("hi",r.hi.asLong());t.putLong("core",r.core.asLong());
