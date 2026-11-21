@@ -1,8 +1,10 @@
 {
   "item.astrodock.flight_capsule": "Flight Capsule",
-  "hud.astrodock.altitude": "Altitude Y=",
+  "hud.astrodock.altitude": "Altitude Y=%s",
   "block.astrodock.ship_core": "Ship Core",
   "block.astrodock.thruster": "Thruster",
   "item.astrodock.ship_wrench": "Ship Wrench",
-  "entity.astrodock.ship": "Assembled Ship"
+  "entity.astrodock.ship": "Assembled Ship",
+  "hud.astrodock.rubra_distance": "Rubra · %s blocks to entry",
+  "hud.astrodock.rubra_surface": "Rubra · surface"
 }

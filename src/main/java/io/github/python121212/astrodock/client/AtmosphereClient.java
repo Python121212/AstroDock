@@ -53,6 +53,7 @@ public final class AtmosphereClient {
             b.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
             layer.draw(b, e.getPoseStack().last().pose(), y);
             BufferUploader.drawWithShader(b.end());
+            if (camera.getEntity().level().dimension()==AstroDock.ORBIT) RubraGlobe.draw(e);
         } finally {
             RenderSystem.depthMask(true); RenderSystem.enableCull(); RenderSystem.disableBlend();
         }
@@ -79,6 +80,7 @@ public final class AtmosphereClient {
     @SubscribeEvent public static void effects(TickEvent.ClientTickEvent e) {
         if (e.phase != TickEvent.Phase.END) return;
         var mc = Minecraft.getInstance(); var p = mc.player;
+        if (p == null || p.level().dimension()!=AstroDock.ORBIT) RubraGlobe.release();
         if (p == null) { select(-1); wind = engine = null; return; }
         double y = altitude(p, p.getY());
         if (mc.isPaused() || y < 320) return;
@@ -101,6 +103,12 @@ public final class AtmosphereClient {
         var mc = Minecraft.getInstance(); var p = mc.player;
         if (mc.options.hideGui || p == null || !AstroDock.supported(p.level())) return;
         double y = AstroDock.altitude(p.level(), p.getY());
+        if (p.level().dimension()==AstroDock.ORBIT) {
+            int remaining=(int)Math.max(0, Math.ceil(p.position().distanceTo(PlanetTravel.CENTER)-PlanetTravel.ENTRY));
+            e.getGuiGraphics().drawString(mc.font,Component.translatable("hud.astrodock.rubra_distance",remaining),8,20,0xffb98e);
+        } else if (p.level().dimension()==AstroDock.RUBRA) {
+            e.getGuiGraphics().drawString(mc.font,Component.translatable("hud.astrodock.rubra_surface"),8,20,0xffb98e);
+        }
         if (y >= 200) e.getGuiGraphics().drawString(mc.font, Component.translatable("hud.astrodock.altitude", (long)Math.floor(y)), 8, 8, 0xdce8ff);
     }
 }

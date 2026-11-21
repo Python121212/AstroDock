@@ -78,7 +78,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         double altitude=AstroDock.altitude(level(),getY());
         // 接地・無人・静止中は10 tickごとの支持面確認だけにする。
         if (pilot==null && onGround() && getDeltaMovement().lengthSqr()==0 && body.momentum.lengthSquared()==0
-                && tickCount%10!=0 && (level().dimension()==AstroDock.ORBIT)==(altitude>=Atmosphere.SPACE)) return;
+                && tickCount%10!=0 && !PlanetTravel.approaching(level().dimension(),position())) return;
         boolean roll=pilot!=null && pilot.getOffhandItem().is(ShipParts.WRENCH.get());
         float lateral=pilot==null?0:pilot.xxa;
         Vec3 velocity=body.step(hull,getDeltaMovement(),altitude,pilot==null?0:pilot.zza,
@@ -107,17 +107,23 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         crossBoundary((ServerLevel)level(),pilot);
     }
     Ship crossBoundary(ServerLevel from, ServerPlayer pilot) {
-        boolean leavingOrbit=from.dimension()==AstroDock.ORBIT;
-        if (leavingOrbit==(AstroDock.altitude(from,getY())>=Atmosphere.SPACE)) return null;
-        ServerLevel to=from.getServer().getLevel(leavingOrbit?Level.OVERWORLD:AstroDock.ORBIT);
-        if (to==null) return null;
-        Ship next=new Ship(ShipParts.SHIP.get(),to);next.body.copyFrom(body);next.configure(hull,owner);next.syncAttitude();
-        next.moveTo(getX(),getY()+(leavingOrbit?Atmosphere.SPACE:-Atmosphere.SPACE),getZ(),getYRot(),0);
-        next.setDeltaMovement(getDeltaMovement());
+        var passage=PlanetTravel.at(from.dimension(),position());
+        if (passage==null) return null;
+        ServerLevel to=from.getServer().getLevel(passage.dimension());
+        if (to==null || !to.getWorldBorder().isWithinBounds(BlockPos.containing(passage.position()))) return null;
+        Ship next=new Ship(ShipParts.SHIP.get(),to);next.body.copyFrom(body);
+        if (passage.frame()!=null) {
+            next.body.attitude.premul(passage.frame()).normalize();
+            passage.frame().transform(next.body.momentum);
+        }
+        next.configure(hull,owner);next.syncAttitude();
+        Vec3 at=passage.position();next.moveTo(at.x,at.y,at.z,next.body.heading(getYRot()),0);
+        next.setDeltaMovement(passage.rotate(getDeltaMovement()));
         to.getChunkAt(next.blockPosition());
         if (!to.noCollision(next,next.getBoundingBox()) || !to.addFreshEntity(next)) {setDeltaMovement(Vec3.ZERO);return null;}
         if (pilot!=null) {
-            pilot.stopRiding();pilot.teleportTo(to,next.getX(),next.getY()+next.getPassengersRidingOffset(),next.getZ(),pilot.getYRot(),pilot.getXRot());
+            Vec3 look=passage.rotate(pilot.getLookAngle());
+            pilot.stopRiding();pilot.teleportTo(to,next.getX(),next.getY()+next.getPassengersRidingOffset(),next.getZ(),passage.yaw(look,pilot.getYRot()),passage.pitch(look,pilot.getXRot()));
             pilot.startRiding(next,true);pilot.fallDistance=0;
         }
         discard();return next;
