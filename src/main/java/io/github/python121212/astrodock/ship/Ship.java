@@ -83,17 +83,27 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         float lateral=pilot==null?0:pilot.xxa;
         Vec3 velocity=body.step(hull,getDeltaMovement(),altitude,pilot==null?0:pilot.zza,
                 pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, roll?0:lateral, roll?lateral:0);
-        if (!previous.equals(body.attitude)) {
-            refreshBounds();
-            if (!level().noCollision(this,getBoundingBox().deflate(0.001))) {
+        boolean rotated=!previous.equals(body.attitude);
+        AABB beforeBox=getBoundingBox();
+        if (rotated) refreshBounds();
+        AABB swept=getBoundingBox().expandTowards(velocity).minmax(beforeBox);
+        boolean clear=ClearFlight.clear((ServerLevel)level(),this,swept);
+        if (rotated) {
+            if (!clear && !level().noCollision(this,getBoundingBox().deflate(0.001))) {
                 body.attitude.set(previous);body.momentum.zero();refreshBounds();
             } else {
                 setYRot(body.heading(getYRot()));
                 entityData.set(ROTATION,new Quaternionf(body.attitude));
             }
         }
-        Vec3 before=position();move(MoverType.SELF,velocity);
-        setDeltaMovement(position().subtract(before));
+        if (clear) {
+            setPos(getX()+velocity.x,getY()+velocity.y,getZ()+velocity.z);
+            setDeltaMovement(velocity);setOnGround(false);
+            horizontalCollision=false;verticalCollision=false;verticalCollisionBelow=false;
+        } else {
+            Vec3 before=position();move(MoverType.SELF,velocity);
+            setDeltaMovement(position().subtract(before));
+        }
         crossBoundary((ServerLevel)level(),pilot);
     }
     Ship crossBoundary(ServerLevel from, ServerPlayer pilot) {

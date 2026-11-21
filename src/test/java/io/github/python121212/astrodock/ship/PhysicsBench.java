@@ -40,7 +40,11 @@ public class PhysicsBench {
             sink=v[0].z;
         });
         long query=median(32,()->{int hits=0;for(AABB b:boxes)if(!level.noCollision(null,b))hits++;sink=hits;});
-        com.mojang.logging.LogUtils.getLogger().info("ASTRO_BENCH blocks={} ships={} old_ns={} six_dof_ns={} collision_query_ns={}",h.parts.size(),count,legacy,physics,query);
+        Ship probe=new Ship(ShipParts.SHIP.get(),level);probe.configure(h,java.util.UUID.randomUUID());
+        for(int i=0;i<count;i++)boxes[i]=boxes[i].move(0,64,0);
+        long emptyVanilla=median(64,()->{int hits=0;for(AABB b:boxes)if(level.noCollision(probe,b))hits++;sink=hits;});
+        long emptyFast=median(64,()->{int hits=0;for(AABB b:boxes)if(ClearFlight.clear(level,probe,b))hits++;sink=hits;});
+        com.mojang.logging.LogUtils.getLogger().info("ASTRO_BENCH blocks={} ships={} old_ns={} six_dof_ns={} collision_query_ns={} empty_vanilla_ns={} empty_fast_ns={}",h.parts.size(),count,legacy,physics,query,emptyVanilla,emptyFast);
     }
     @GameTest(templateNamespace="minecraft", template="igloo/top")
     public static void profileFleet(GameTestHelper test) {
