@@ -49,15 +49,14 @@ public class WorkingCabinTest {
         t.assertTrue(next!=null && next.roomId==r.id && next.getUUID().equals(r.shipId),"境界移動で船室が分離");
         var db=CabinRooms.load(d.save(new CompoundTag()));t.assertTrue(db.get(r.id).visitors.contains(p.getUUID()) && db.get(r.id).shipId.equals(next.getUUID()),"船室の保存に失敗");
         // 精錬はテストから ticker を呼ばず、実際のワールド更新に任せる。
-        t.succeedWhen(()->{
-            t.assertTrue(((Container)cabin.getBlockEntity(r.core.east(3))).getItem(2).is(Items.IRON_INGOT),"船室のかまどが稼働していない");
-            CabinRooms.leave(p);t.assertTrue(p.getVehicle()==next && p.level()==next.level(),"転送先の船に帰れない");
+        t.startSequence().thenWaitUntil(()->t.assertTrue(((Container)cabin.getBlockEntity(r.core.east(3))).getItem(2).is(Items.IRON_INGOT),"船室のかまどが稼働していない")).thenExecute(()->{
+            CabinRooms.leave(p);t.assertTrue(p.getVehicle()==next && p.level()==next.level(),"転送先の船に帰れない: dim="+p.level().dimension()+", vehicle="+p.getVehicle()+", shell="+next.getRemovalReason()+", lookup="+((net.minecraft.server.level.ServerLevel)next.level()).getEntity(r.shipId));
             next.moveTo(core.getX()+.5+next.hull().cx,core.getY(),core.getZ()+.5+next.hull().cz,0,0);next.setDeltaMovement(Vec3.ZERO);
             var dest=p.serverLevel();dest.getChunkAt(core);for(var pos:BlockPos.betweenClosed(core,hatch.above()))dest.setBlock(pos,Blocks.AIR.defaultBlockState(),2|16|32);
             next.dock(p);t.assertTrue(next.isRemoved() && d.get(r.id)==null,"再設置できない");
             t.assertTrue(((Container)dest.getBlockEntity(chest)).getItem(0).getCount()==3 && ((Container)dest.getBlockEntity(furnace)).getItem(2).is(Items.IRON_INGOT) && dest.getBlockState(core.east().above()).is(Blocks.CRAFTING_TABLE),"編集・精錬結果の復元失敗");
             t.assertTrue(cabin.isEmptyBlock(r.core.east(2)),"船室に積荷の複製が残った");
             com.mojang.logging.LogUtils.getLogger().info("AstroDock working cabin verified");
-        });
+        }).thenSucceed();
     }
 }

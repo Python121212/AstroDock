@@ -76,6 +76,7 @@ public final class CabinRooms extends SavedData {
         }
     }
     static void ticket(ServerLevel l,ChunkPos c) {l.resetEmptyTime();l.getChunkSource().addRegionTicket(ACTIVE,c,2,c);}
+    static void follow(ServerLevel l,ChunkPos chunk) {l.resetEmptyTime();l.getChunkSource().addRegionTicket(ACTIVE,chunk,3,chunk);}
     @Override public CompoundTag save(CompoundTag tag) {
         tag.putInt("next",next);var list=new ListTag();for(Room r:rooms.values()) {
             var t=new CompoundTag();t.putInt("id",r.id);t.putLong("lo",r.lo.asLong());t.putLong("hi",r.hi.asLong());t.putLong("core",r.core.asLong());
@@ -111,7 +112,7 @@ public final class CabinRooms extends SavedData {
         ServerLevel c=level(p.serverLevel());Vec3 v=r.entry(c,s.hull());
         if(v==null) {ShipWrench.message(p,"船室に入れる足場がありません");return;}
         r.visitors.add(p.getUUID());data(c).setDirty();p.getPersistentData().putInt(VISIT,r.id);
-        ticket(p.serverLevel(),s.chunkPosition());p.stopRiding();
+        follow(p.serverLevel(),s.chunkPosition());p.stopRiding();
         p.teleportTo(c,v.x,v.y,v.z,p.getYRot(),0);p.setDeltaMovement(Vec3.ZERO);p.fallDistance=0;
     }
     public static void leave(ServerPlayer p) {
@@ -119,7 +120,7 @@ public final class CabinRooms extends SavedData {
         CabinRooms d=data(p.serverLevel());Room r=d.get(p.getPersistentData().getInt(VISIT));
         if(r==null || !r.visitors.contains(p.getUUID()))return;
         var dest=p.serverLevel().getServer().getLevel(r.dimension);if(dest==null)return;
-        ticket(dest,r.chunk);if(!(dest.getEntity(r.shipId) instanceof Ship s)) {ShipWrench.message(p,"艦を読み込んでいます。少し待ってもう一度操作してください");return;}
+        follow(dest,r.chunk);if(!(dest.getEntity(r.shipId) instanceof Ship s)) {ShipWrench.message(p,"艦を読み込んでいます。少し待ってもう一度操作してください");return;}
         r.visitors.remove(p.getUUID());d.setDirty();p.getPersistentData().remove(VISIT);
         p.teleportTo(dest,s.getX(),s.getY()+s.getPassengersRidingOffset(),s.getZ(),p.getYRot(),0);p.startRiding(s,true);p.fallDistance=0;
     }
@@ -127,7 +128,7 @@ public final class CabinRooms extends SavedData {
         if(e.phase!=TickEvent.Phase.END || !(e.player instanceof ServerPlayer p) || p.tickCount%20!=0 || !p.getPersistentData().contains(VISIT))return;
         CabinRooms d=data(p.serverLevel());Room r=d.get(p.getPersistentData().getInt(VISIT));if(r==null)return;
         if(p.level().dimension()!=LEVEL || !p.isAlive()) {r.visitors.remove(p.getUUID());d.setDirty();p.getPersistentData().remove(VISIT);return;}
-        var dest=p.serverLevel().getServer().getLevel(r.dimension);if(dest!=null) ticket(dest,r.chunk);
+        var dest=p.serverLevel().getServer().getLevel(r.dimension);if(dest!=null) follow(dest,r.chunk);
     }
     @SubscribeEvent public static void died(net.minecraftforge.event.entity.living.LivingDeathEvent e) {
         if(e.getEntity() instanceof ServerPlayer p && p.level().dimension()==LEVEL) {

@@ -207,7 +207,14 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         }
         if(roomId!=0) {
             var d=CabinRooms.data((ServerLevel)level());var r=d.get(roomId);
-            if(r!=null) {d.locate(r,this);if(tickCount%20==0) CabinRooms.ticket(CabinRooms.level((ServerLevel)level()),new net.minecraft.world.level.ChunkPos(r.core));}
+            if(r!=null) {
+                var shell=(ServerLevel)level();var c=CabinRooms.level(shell);
+                if(tickCount%10==0 || !chunkPosition().equals(r.chunk)) {
+                    CabinRooms.ticket(c,new net.minecraft.world.level.ChunkPos(r.core));
+                    if(r.visitors.stream().anyMatch(id->c.getPlayerByUUID(id)!=null))CabinRooms.follow(shell,chunkPosition());
+                    d.locate(r,this);
+                }
+            }
         }
         ServerPlayer captain=null;
         for(Entity passenger:getPassengers()) if(passenger instanceof ServerPlayer rider) {
@@ -279,7 +286,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         }
         if (!to.noCollision(next,next.getBoundingBox()) || !to.addFreshEntity(next)) {setDeltaMovement(Vec3.ZERO);return null;}
         next.roomId=roomId;
-        if(roomId!=0){var d=CabinRooms.data(from);var r=d.get(roomId);if(r!=null){d.locate(r,next);if(!r.visitors.isEmpty())CabinRooms.ticket(to,next.chunkPosition());}}
+        if(roomId!=0){var d=CabinRooms.data(from);var r=d.get(roomId);if(r!=null){d.locate(r,next);if(!r.visitors.isEmpty())CabinRooms.follow(to,next.chunkPosition());}}
         // 降船時に元の席情報が消えるので、先に全員分を転送先に複製する。
         for(Entity rider:List.copyOf(getPassengers())) if(rider instanceof ServerPlayer player) {
             Vec3 look=passage.rotate(player.getLookAngle());
