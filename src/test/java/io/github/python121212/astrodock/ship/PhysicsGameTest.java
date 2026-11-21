@@ -47,14 +47,14 @@ public class PhysicsGameTest {
         test.assertTrue(Math.abs(loaded.body.attitude.dot(body.attitude))>0.99999 && loaded.body.momentum.equals(original),"保存復元の不一致");
         tag.remove("qw");tag.putDouble("spin",2);loaded.setYRot(35);loaded.readAdditionalSaveData(tag);
         test.assertTrue(Math.abs(loaded.body.heading(0)-35)<1e-3 && loaded.body.momentum.y<0,"0.3.0 データの移行失敗");
-        // テスト構造物の真上の読み込み済み空間と、同じ場所に壁がある場合を比較。
-        var level=test.getLevel();var block=test.absolutePos(new BlockPos(2,40,2));
+        // 宇宙の読み込み済み空セクションと、同じ場所に壁がある場合を比較。
+        var level=orbit;var block=new BlockPos(264,145,280);level.getChunkAt(block);
         var volume=new net.minecraft.world.phys.AABB(block).inflate(0.1);
         Ship probe=new Ship(ShipParts.SHIP.get(),level);probe.configure(h,owner);
         test.assertTrue(ClearFlight.clear(level,probe,volume),"空の飛行経路を検出できない");
         level.setBlockAndUpdate(block,ShipParts.CORE.get().defaultBlockState());
         test.assertTrue(!ClearFlight.clear(level,probe,volume) && !level.noCollision(probe,volume),"障害物を素通りする");
         level.removeBlock(block,false);
-        back.discard();test.succeed();
+        back.discard();com.mojang.logging.LogUtils.getLogger().info("AstroDock rigid body verified");test.succeed();
     }
 }

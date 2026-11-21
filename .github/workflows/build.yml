@@ -22,9 +22,13 @@ jobs:
       - run: ./gradlew build --no-daemon
       - name: 宇宙での建築・艦船テスト
         run: |
-          ./gradlew runGameTestServer --no-daemon
+          ./gradlew runGameTestServer --no-daemon || {
+            grep -Ei 'failed|exception|assertion|エラー' build/gametest/logs/latest.log | tail -12 | sed 's/^/::error::/'
+            exit 1
+          }
           grep -F 'AstroDock orbit placement verified' build/gametest/logs/latest.log
           grep -F 'AstroDock ship round trip verified' build/gametest/logs/latest.log
+          grep -F 'AstroDock rigid body verified' build/gametest/logs/latest.log
           grep 'ASTRO_BENCH blocks=' build/gametest/logs/latest.log | sed 's/.*ASTRO_BENCH/::notice title=Physics benchmark::ASTRO_BENCH/'
         timeout-minutes: 8
       - name: JAR の内容を確認

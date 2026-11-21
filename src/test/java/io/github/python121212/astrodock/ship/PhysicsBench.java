@@ -40,10 +40,16 @@ public class PhysicsBench {
             sink=v[0].z;
         });
         long query=median(32,()->{int hits=0;for(AABB b:boxes)if(!level.noCollision(null,b))hits++;sink=hits;});
-        Ship probe=new Ship(ShipParts.SHIP.get(),level);probe.configure(h,java.util.UUID.randomUUID());
-        for(int i=0;i<count;i++)boxes[i]=boxes[i].move(0,64,0);
-        long emptyVanilla=median(64,()->{int hits=0;for(AABB b:boxes)if(level.noCollision(probe,b))hits++;sink=hits;});
-        long emptyFast=median(64,()->{int hits=0;for(AABB b:boxes)if(ClearFlight.clear(level,probe,b))hits++;sink=hits;});
+        // 空域比較は確実に空である読み込み済みの宇宙チャンクで実施する。
+        ServerLevel empty=level.getServer().getLevel(io.github.python121212.astrodock.AstroDock.ORBIT);
+        Ship observer=new Ship(ShipParts.SHIP.get(),empty);observer.configure(h,java.util.UUID.randomUUID());
+        for(int i=0;i<count;i++) {
+            boxes[i]=new AABB(new BlockPos(328+i%3,144,328+i%3)).inflate(h.radiusX,0.5*h.height,h.radiusZ);
+            empty.getChunkAt(new BlockPos(328,144,328));
+            if (!ClearFlight.clear(empty,observer,boxes[i]) || !empty.noCollision(observer,boxes[i])) throw new AssertionError("空域の測定条件が不正です");
+        }
+        long emptyVanilla=median(64,()->{int hits=0;for(AABB b:boxes)if(empty.noCollision(observer,b))hits++;sink=hits;});
+        long emptyFast=median(64,()->{int hits=0;for(AABB b:boxes)if(ClearFlight.clear(empty,observer,b))hits++;sink=hits;});
         com.mojang.logging.LogUtils.getLogger().info("ASTRO_BENCH blocks={} ships={} old_ns={} six_dof_ns={} collision_query_ns={} empty_vanilla_ns={} empty_fast_ns={}",h.parts.size(),count,legacy,physics,query,emptyVanilla,emptyFast);
     }
     @GameTest(templateNamespace="minecraft", template="igloo/top")
