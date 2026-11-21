@@ -1,8 +1,10 @@
 {
   "item.astrodock.flight_capsule": "飛行カプセル",
-  "hud.astrodock.altitude": "高度 Y=",
+  "hud.astrodock.altitude": "高度 Y=%s",
   "block.astrodock.ship_core": "艦船コア",
   "block.astrodock.thruster": "スラスター",
   "item.astrodock.ship_wrench": "艦船レンチ",
-  "entity.astrodock.ship": "自作艦"
+  "entity.astrodock.ship": "自作艦",
+  "hud.astrodock.rubra_distance": "ルブラ · 突入まで %s ブロック",
+  "hud.astrodock.rubra_surface": "ルブラ · 地表"
 }

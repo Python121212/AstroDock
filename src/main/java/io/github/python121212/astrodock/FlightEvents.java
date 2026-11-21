@@ -30,7 +30,7 @@ public final class FlightEvents {
         if (p instanceof ServerPlayer sp) {
             gravity(sp, supported ? Atmosphere.gravityLoss(y) : 0);
             if (!supported || !sp.isAlive()) return;
-            if (!sp.isPassenger() && crossBoundary(sp, y)) return;
+            if (!sp.isPassenger() && crossBoundary(sp)) return;
             int interval = Atmosphere.hypoxiaInterval(y);
             if (sp.getVehicle() instanceof io.github.python121212.astrodock.ship.Ship) return;
             if (interval > 0 && !sp.isCreative() && !sp.isSpectator()
@@ -70,15 +70,15 @@ public final class FlightEvents {
                 AttributeModifier.Operation.MULTIPLY_TOTAL));
     }
 
-    private static boolean crossBoundary(ServerPlayer p, double altitude) {
-        boolean orbit = p.level().dimension() == AstroDock.ORBIT;
-        if (orbit == (altitude >= Atmosphere.SPACE)) {
-            if (Math.abs(altitude - Atmosphere.SPACE) < 32) {
+    static boolean crossBoundary(ServerPlayer p) {
+        var passage = PlanetTravel.at(p.level().dimension(), p.position());
+        if (passage == null) {
+            if (PlanetTravel.approaching(p.level().dimension(), p.position())) {
                 approach.put(p, new Sample(p.level(), p.position(), p.tickCount));
             } else if (!approach.isEmpty()) approach.remove(p);
             return false;
         }
-        ServerLevel dest = p.serverLevel().getServer().getLevel(orbit ? Level.OVERWORLD : AstroDock.ORBIT);
+        ServerLevel dest = p.serverLevel().getServer().getLevel(passage.dimension());
         if (dest == null) return false;
         Vec3 velocity = p.getDeltaMovement();
         // サーバー上のプレイヤー速度はクライアントの飛行入力を含まないため、
@@ -88,7 +88,14 @@ public final class FlightEvents {
             Vec3 delta = p.position().subtract(last.position);
             if (delta.lengthSqr() <= 3.9 * 3.9) velocity = delta;
         }
-        p.teleportTo(dest, p.getX(), orbit ? altitude : altitude - Atmosphere.SPACE, p.getZ(), p.getYRot(), p.getXRot());
+        Vec3 at=passage.position(), look=passage.rotate(p.getLookAngle());
+        if (passage.frame()!=null) {
+            dest.getChunkAt(net.minecraft.core.BlockPos.containing(at));
+            if (!dest.getWorldBorder().isWithinBounds(net.minecraft.core.BlockPos.containing(at)) ||
+                    !dest.noCollision(p,p.getBoundingBox().move(at.subtract(p.position())))) return false;
+        }
+        velocity=passage.rotate(velocity);
+        p.teleportTo(dest, at.x, at.y, at.z, passage.yaw(look,p.getYRot()), passage.pitch(look,p.getXRot()));
         p.setDeltaMovement(velocity);
         p.connection.send(new ClientboundSetEntityMotionPacket(p));
         p.fallDistance = 0;

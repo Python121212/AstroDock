@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:overworld",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "astrodock:rubra",
+    "biome_source": {"type": "minecraft:fixed", "biome": "astrodock:rubra"}
+  }
+}
