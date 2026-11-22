@@ -366,11 +366,13 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         Vec3 velocity=body.step(hull,getDeltaMovement(),altitude,pilot==null?0:pilot.zza,
                 pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, yaw, roll?lateral:0, pilot!=null && pilot.jumping,engineOn()?supply:0);
         if (isInWater()) {
-            if (hull.watertight) {
-                double buoyancy = Math.min(0.08, 0.045 * (6.0 * hull.parts.size() / Math.max(1.0, hull.mass)));
-                velocity = new Vec3(velocity.x * 0.92, Math.max(-0.08, velocity.y * 0.85 + buoyancy), velocity.z * 0.92);
+            if (hull.watertight && hull.displacementCapacity > hull.mass) {
+                double reserve = (hull.displacementCapacity - hull.mass) / hull.displacementCapacity;
+                double buoyancy = 0.032 + 0.055 * reserve;
+                double waterDrag = 0.86 + 0.08 * reserve;
+                velocity = new Vec3(velocity.x * waterDrag, Math.max(-0.08, velocity.y * 0.84 + buoyancy), velocity.z * waterDrag);
             } else {
-                velocity = new Vec3(velocity.x * 0.85, velocity.y * 0.9 - 0.025, velocity.z * 0.85);
+                velocity = new Vec3(velocity.x * 0.84, velocity.y * 0.9 - 0.028, velocity.z * 0.84);
             }
         }
         boolean rotated=!previous.equals(body.attitude);
