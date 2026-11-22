@@ -23,7 +23,7 @@ public final class Hull {
     final List<Walkway> walkways;
     final List<Part> doors;
     public final boolean hasHelm, hasGravityController, watertight;
-    public final int engines, floor, height, pointDefenseLasers, salvageBeams, miningLasers, lifeSupports, warpDrives, shieldGenerators;
+    public final int engines, floor, height, pointDefenseLasers, salvageBeams, miningLasers, lifeSupports, warpDrives, shieldGenerators, cannonBarrels, cannonTurrets, cannonBreeches;
     public final double effectiveEngines, streamline, ricochetChance, displacementCapacity;
     public Hull(List<Part> parts) {
         if (parts.isEmpty() || parts.size() > ShipWrench.MAX_PARTS) throw new IllegalArgumentException("船体サイズが不正です");
@@ -96,7 +96,7 @@ public final class Hull {
 
         Set<BlockPos> solid = new HashSet<>();
         for (Part pt : parts) solid.add(pt.pos);
-        int sloped = 0, pd = 0, sb = 0, ml = 0, ls = 0, wd = 0, sg = 0;
+        int sloped = 0, pd = 0, sb = 0, ml = 0, ls = 0, wd = 0, sg = 0, cb = 0, ct = 0, cbr = 0;
         for (Part pt : parts) {
             if (pt.state.is(ShipParts.POINT_DEFENSE_LASER.get())) pd++;
             if (pt.state.is(ShipParts.SALVAGE_BEAM.get())) sb++;
@@ -104,6 +104,9 @@ public final class Hull {
             if (pt.state.is(ShipParts.LIFE_SUPPORT.get())) ls++;
             if (pt.state.is(ShipParts.WARP_DRIVE.get())) wd++;
             if (pt.state.is(ShipParts.SHIELD_GENERATOR.get())) sg++;
+            if (pt.state.is(ShipParts.CANNON_BARREL.get())) cb++;
+            if (pt.state.is(ShipParts.CANNON_TURRET.get())) ct++;
+            if (pt.state.is(ShipParts.CANNON_BREECH.get())) cbr++;
             boolean hasFront = solid.contains(pt.pos.north());
             boolean hasBack = solid.contains(pt.pos.south());
             boolean hasLeft = solid.contains(pt.pos.west());
@@ -121,6 +124,9 @@ public final class Hull {
         this.lifeSupports = ls;
         this.warpDrives = wd;
         this.shieldGenerators = sg;
+        this.cannonBarrels = cb;
+        this.cannonTurrets = ct;
+        this.cannonBreeches = cbr;
         this.ricochetChance = parts.isEmpty() ? 0 : Math.min(0.45, (double) sloped / parts.size() * 0.9);
 
         int sealedCells = countSealedCells(parts, solid);

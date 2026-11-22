@@ -45,6 +45,11 @@ public final class ShipParts {
     public static final RegistryObject<Block> AIRLOCK = part("airlock_door", p -> new DoorBlock(p.noOcclusion(), BlockSetType.STONE) {});
     public static final RegistryObject<Block> HATCH = part("exterior_hatch", p -> new TrapDoorBlock(p.noOcclusion(), BlockSetType.STONE) {});
     public static final RegistryObject<Block> CANNON = part("main_cannon", MainCannonBlock::new), MISSILES = part("missile_launcher", Block::new), TORPEDOES = part("torpedo_tube", Block::new);
+    public static final RegistryObject<Block> CANNON_BARREL = part("cannon_barrel", p -> new RotatedPillarBlock(p.strength(5, 24).sound(SoundType.METAL).noOcclusion()));
+    public static final RegistryObject<Block> CANNON_TURRET = part("cannon_turret", p -> new CannonTurretBlock(p.strength(6, 32).sound(SoundType.METAL)));
+    public static final RegistryObject<Block> CANNON_BREECH = part("cannon_breech", p -> new Block(p.strength(6, 32).sound(SoundType.METAL)));
+    public static final RegistryObject<BlockEntityType<CannonTurretBlockEntity>> CANNON_TURRET_BE = TILES.register("cannon_turret", () ->
+            BlockEntityType.Builder.of(CannonTurretBlockEntity::new, CANNON_TURRET.get()).build(null));
     public static final RegistryObject<Block> MINING_LASER = part("mining_laser", p -> new Block(p.strength(4, 16).sound(SoundType.METAL)));
     public static final RegistryObject<Block> SALVAGE_BEAM = part("salvage_beam", p -> new Block(p.strength(4, 16).sound(SoundType.METAL)));
     public static final RegistryObject<Block> POINT_DEFENSE_LASER = part("point_defense_laser", p -> new Block(p.strength(4, 16).sound(SoundType.METAL)));
@@ -94,6 +99,9 @@ public final class ShipParts {
                 output.accept(PLANET_SCANNER.get());
                 output.accept(LASER_CUTTER.get());
                 output.accept(WELDING_TORCH.get());
+                output.accept(CANNON_BARREL.get());
+                output.accept(CANNON_TURRET.get());
+                output.accept(CANNON_BREECH.get());
             }).build());
 
     private static RegistryObject<Block> part(String id, Function<BlockBehaviour.Properties,Block> factory) {
