@@ -365,14 +365,6 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             yaw=body.helmYaw(hull,getYRot(),pilot.getYRot());
         Vec3 velocity=body.step(hull,getDeltaMovement(),altitude,pilot==null?0:pilot.zza,
                 pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, yaw, roll?lateral:0, pilot!=null && pilot.jumping,engineOn()?supply:0);
-        if (isInWater()) {
-            if (hull.watertight) {
-                double buoyancy = Math.min(0.08, 0.045 * (6.0 * hull.parts.size() / Math.max(1.0, hull.mass)));
-                velocity = new Vec3(velocity.x * 0.92, Math.max(-0.08, velocity.y * 0.85 + buoyancy), velocity.z * 0.92);
-            } else {
-                velocity = new Vec3(velocity.x * 0.85, velocity.y * 0.9 - 0.025, velocity.z * 0.85);
-            }
-        }
         boolean rotated=!previous.equals(body.attitude);
         AABB beforeBox=getBoundingBox();
         if (rotated) refreshBounds();
