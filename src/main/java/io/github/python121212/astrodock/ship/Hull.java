@@ -22,7 +22,7 @@ public final class Hull {
     final CabinDeck deck;
     final List<Walkway> walkways;
     final List<Part> doors;
-    public final boolean hasHelm, hasGravityController;
+    public final boolean hasHelm, hasGravityController, watertight;
     public final int engines, floor, height;
     public final double effectiveEngines, streamline, ricochetChance;
     public Hull(List<Part> parts) {
@@ -105,6 +105,45 @@ public final class Hull {
             if ((hasFront ^ hasBack) && (hasLeft ^ hasRight)) sloped++;
         }
         this.ricochetChance = parts.isEmpty() ? 0 : Math.min(0.45, (double) sloped / parts.size() * 0.9);
+
+        int bMinX = Integer.MAX_VALUE, bMinY = Integer.MAX_VALUE, bMinZ = Integer.MAX_VALUE;
+        int bMaxX = Integer.MIN_VALUE, bMaxY = Integer.MIN_VALUE, bMaxZ = Integer.MIN_VALUE;
+        for (Part pt : parts) {
+            bMinX = Math.min(bMinX, pt.pos.getX()); bMaxX = Math.max(bMaxX, pt.pos.getX());
+            bMinY = Math.min(bMinY, pt.pos.getY()); bMaxY = Math.max(bMaxY, pt.pos.getY());
+            bMinZ = Math.min(bMinZ, pt.pos.getZ()); bMaxZ = Math.max(bMaxZ, pt.pos.getZ());
+        }
+        boolean sealed = !parts.isEmpty();
+        if (sealed && bMaxX - bMinX >= 2 && bMaxY - bMinY >= 2 && bMaxZ - bMinZ >= 2) {
+            Set<BlockPos> outside = new HashSet<>();
+            Deque<BlockPos> q = new ArrayDeque<>();
+            BlockPos start = new BlockPos(bMinX - 1, bMinY - 1, bMinZ - 1);
+            outside.add(start);
+            q.add(start);
+            int[][] dirs = {{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
+            while (!q.isEmpty()) {
+                BlockPos cur = q.poll();
+                for (int[] dir : dirs) {
+                    BlockPos nxt = cur.offset(dir[0], dir[1], dir[2]);
+                    if (nxt.getX() < bMinX - 1 || nxt.getX() > bMaxX + 1
+                            || nxt.getY() < bMinY - 1 || nxt.getY() > bMaxY + 1
+                            || nxt.getZ() < bMinZ - 1 || nxt.getZ() > bMaxZ + 1) continue;
+                    if (!solid.contains(nxt) && outside.add(nxt)) q.add(nxt);
+                }
+            }
+            for (int x = bMinX + 1; x < bMaxX && sealed; x++) {
+                for (int y = bMinY + 1; y < bMaxY && sealed; y++) {
+                    for (int z = bMinZ + 1; z < bMaxZ; z++) {
+                        BlockPos inner = new BlockPos(x, y, z);
+                        if (!solid.contains(inner) && outside.contains(inner)) {
+                            sealed = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        this.watertight = sealed;
         inertiaTensor=new Matrix3f((float)xx,(float)xy,(float)xz,(float)xy,(float)yy,(float)yz,(float)xz,(float)yz,(float)zz);
         inverseInertia=new Matrix3f(inertiaTensor).invert(); radiusX=rx; radiusZ=rz;
     }

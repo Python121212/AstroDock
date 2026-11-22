@@ -56,6 +56,16 @@ public class NozzleGameTest {
         ));
         test.assertTrue(sleek.streamline < bare.streamline && sleek.ricochetChance > 0, "船体形状の流線型・跳弾判定が不正");
 
+        List<Hull.Part> sealedParts = new java.util.ArrayList<>();
+        List<Hull.Part> holedParts = new java.util.ArrayList<>();
+        for (int x = 0; x <= 2; x++) for (int y = 0; y <= 2; y++) for (int z = 0; z <= 2; z++) {
+            if (x == 1 && y == 1 && z == 1) continue;
+            var pos = new BlockPos(x, y, z);
+            sealedParts.add(new Hull.Part(pos, iron, 4));
+            if (!(x == 1 && y == 2 && z == 1)) holedParts.add(new Hull.Part(pos, iron, 4));
+        }
+        test.assertTrue(new Hull(sealedParts).watertight && !new Hull(holedParts).watertight, "船体の水密・浸水判定が不正");
+
         com.mojang.logging.LogUtils.getLogger().info("AstroDock custom nozzle verified");
         test.succeed();
     }
