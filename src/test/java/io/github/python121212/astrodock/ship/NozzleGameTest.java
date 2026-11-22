@@ -89,10 +89,10 @@ public class NozzleGameTest {
         testShip.extinguish();
         test.assertTrue(testShip.fireLevel() == 0, "消火できていない");
         var slopeHull = new Hull(java.util.List.of(
-                new Hull.Part(new BlockPos(0, 0, 0), ShipParts.CORE.get().defaultBlockState()),
-                new Hull.Part(new BlockPos(1, 0, 0), ShipParts.LAMINATED_ARMOR_SLOPE.get().defaultBlockState()),
-                new Hull.Part(new BlockPos(2, 0, 0), ShipParts.BLACKSHELL_ARMOR_SLOPE.get().defaultBlockState()),
-                new Hull.Part(new BlockPos(3, 0, 0), ShipParts.NOZZLE_CASING_SLOPE.get().defaultBlockState())
+                new Hull.Part(new BlockPos(0, 0, 0), ShipParts.CORE.get().defaultBlockState(), 1.0, null),
+                new Hull.Part(new BlockPos(1, 0, 0), ShipParts.LAMINATED_ARMOR_SLOPE.get().defaultBlockState(), 1.0, null),
+                new Hull.Part(new BlockPos(2, 0, 0), ShipParts.BLACKSHELL_ARMOR_SLOPE.get().defaultBlockState(), 1.0, null),
+                new Hull.Part(new BlockPos(3, 0, 0), ShipParts.NOZZLE_CASING_SLOPE.get().defaultBlockState(), 1.0, null)
         ));
         test.assertTrue(slopeHull.ricochetChance > 0.3, "スロープブロックの跳弾率が反映されていない");
         com.mojang.logging.LogUtils.getLogger().info("AstroDock custom nozzle verified");
