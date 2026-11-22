@@ -15,7 +15,10 @@ public final class ShipGuide {
 
     private static final Map<Item, Entry> ENTRIES = new HashMap<>();
 
-    static {
+    private static boolean initialized;
+    private static void init() {
+        if (initialized) return;
+        initialized = true;
         var core = ShipParts.CORE.get().defaultBlockState();
         var iron = Blocks.IRON_BLOCK.defaultBlockState();
         var armor = ShipParts.LAMINATED_ARMOR.get().defaultBlockState();
@@ -114,7 +117,7 @@ public final class ShipGuide {
         ENTRIES.put(ShipParts.BLACKSHELL_ARMOR.get().asItem(), armorEntry);
     }
 
-    public static Entry get(Item item) { return ENTRIES.get(item); }
+    public static Entry get(Item item) { init(); return ENTRIES.get(item); }
 
     private static List<Part> boxShell(BlockState wall, BlockState door) {
         List<Part> list = new ArrayList<>();
