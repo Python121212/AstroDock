@@ -27,11 +27,14 @@ public final class ShipParts {
     public static final RegistryObject<Block> STRATASTEEL_ORE = part("stratasteel_ore", p -> new Block(p.strength(3,3).sound(SoundType.STONE)));
     public static final RegistryObject<Block> BLACKSHELL_ORE = part("blackshell_ore", p -> new Block(p.strength(4.5f,4.5f).sound(SoundType.DEEPSLATE)));
     public static final RegistryObject<Block> LAMINATED_ARMOR = part("laminated_armor", p -> new Block(p.strength(4,16).sound(SoundType.METAL)));
+    public static final RegistryObject<Block> LAMINATED_ARMOR_SLOPE = part("laminated_armor_slope", p -> new SlopeBlock(p.strength(4,16).sound(SoundType.METAL).noOcclusion()));
     public static final RegistryObject<Block> BLACKSHELL_ARMOR = part("blackshell_armor", p -> new Block(p.strength(8,48).sound(SoundType.METAL)));
+    public static final RegistryObject<Block> BLACKSHELL_ARMOR_SLOPE = part("blackshell_armor_slope", p -> new SlopeBlock(p.strength(8,48).sound(SoundType.METAL).noOcclusion()));
     public static final RegistryObject<Item> STRATASTEEL_FLAKE = ITEMS.register("stratasteel_flake", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> RAW_BLACKSHELL = ITEMS.register("raw_blackshell", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> BLACKSHELL_INGOT = ITEMS.register("blackshell_ingot", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Block> NOZZLE_CASING = part("nozzle_casing", pr -> new Block(pr.strength(5, 24).sound(SoundType.METAL)));
+    public static final RegistryObject<Block> NOZZLE_CASING_SLOPE = part("nozzle_casing_slope", pr -> new SlopeBlock(pr.strength(5, 24).sound(SoundType.METAL).noOcclusion()));
     public static final RegistryObject<Item> IRON_PLATE = ITEMS.register("iron_plate", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> STRATASTEEL_PLATE = ITEMS.register("stratasteel_plate", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> BLACKSHELL_PLATE = ITEMS.register("blackshell_plate", () -> new Item(new Item.Properties()));
@@ -62,7 +65,9 @@ public final class ShipParts {
                 output.accept(STRATASTEEL_ORE.get());
                 output.accept(BLACKSHELL_ORE.get());
                 output.accept(LAMINATED_ARMOR.get());
+                output.accept(LAMINATED_ARMOR_SLOPE.get());
                 output.accept(BLACKSHELL_ARMOR.get());
+                output.accept(BLACKSHELL_ARMOR_SLOPE.get());
                 output.accept(STRATASTEEL_FLAKE.get());
                 output.accept(RAW_BLACKSHELL.get());
                 output.accept(BLACKSHELL_INGOT.get());
@@ -70,6 +75,7 @@ public final class ShipParts {
                 output.accept(STRATASTEEL_PLATE.get());
                 output.accept(BLACKSHELL_PLATE.get());
                 output.accept(NOZZLE_CASING.get());
+                output.accept(NOZZLE_CASING_SLOPE.get());
             }).build());
 
     private static RegistryObject<Block> part(String id, Function<BlockBehaviour.Properties,Block> factory) {

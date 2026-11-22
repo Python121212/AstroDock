@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "count": 1,
+  "ingredient": {
+    "item": "astrodock:blackshell_armor"
+  },
+  "result": "astrodock:blackshell_armor_slope"
+}
