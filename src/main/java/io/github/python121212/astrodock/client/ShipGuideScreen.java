@@ -51,8 +51,8 @@ public final class ShipGuideScreen extends Screen {
         lastHoverTick = tick;
         int filled = Math.min(10, holdTicks * 10 / HOLD_TICKS);
         String bar = "█".repeat(filled) + "░".repeat(10 - filled);
-        event.getToolTip().add(Component.literal("[Shift] 長押しで3D組み方ガイド ").withStyle(ChatFormatting.AQUA)
-                .append(Component.literal(bar).withStyle(Screen.hasShiftDown() ? ChatFormatting.YELLOW : ChatFormatting.DARK_GRAY)));
+        event.getToolTip().add(Component.literal("[Shift] 長押しで3D組み方ガイド " + bar)
+                .withStyle(Screen.hasShiftDown() ? ChatFormatting.YELLOW : ChatFormatting.AQUA));
     }
 
     @SubscribeEvent
@@ -91,7 +91,7 @@ public final class ShipGuideScreen extends Screen {
 
     @Override
     public void onClose() {
-        minecraft.setScreen(parent);
+        Minecraft.getInstance().setScreen(parent);
     }
 
     @Override
@@ -124,18 +124,16 @@ public final class ShipGuideScreen extends Screen {
         g.drawCenteredString(font, entry.title() + " (" + (stepIndex + 1) + "/" + entry.steps().size() + ")", width / 2, 14, 0x7FE7FF);
         g.drawCenteredString(font, step.title(), width / 2, 28, 0xFFFFFF);
 
-        // 3Dブロック構造の描画（ドラッグで回転、未操作時はゆっくり自動回転）
         if (!dragging) yaw += partialTick * 0.45f;
-        // renderStructure(g, step);
+        renderStructure(g, step);
 
-        // 解説とヒントパネル
         int boxW = Math.min(420, width - 32);
         int boxX = (width - boxW) / 2;
         int boxY = height - 96;
         g.fill(boxX, boxY, boxX + boxW, boxY + 54, 0xAA101824);
         g.fill(boxX, boxY, boxX + boxW, boxY + 1, 0xFF3A7CA5);
         g.drawWordWrap(font, Component.literal(step.detail()), boxX + 8, boxY + 6, boxW - 16, 0xE6EDF3);
-        g.drawWordWrap(font, Component.literal(step.tip()).withStyle(ChatFormatting.GOLD), boxX + 8, boxY + 32, boxW - 16, 0xFFD166);
+        g.drawWordWrap(font, Component.literal(step.tip()), boxX + 8, boxY + 32, boxW - 16, 0xFFD166);
 
         super.render(g, mx, my, partialTick);
     }
@@ -151,8 +149,9 @@ public final class ShipGuideScreen extends Screen {
         pose.translate(-0.5f, -0.5f, -0.5f);
 
         RenderSystem.enableDepthTest();
-        var dispatcher = minecraft.getBlockRenderer();
-        var buffer = minecraft.renderBuffers().bufferSource();
+        var mc = Minecraft.getInstance();
+        var dispatcher = mc.getBlockRenderer();
+        var buffer = mc.renderBuffers().bufferSource();
         for (var part : step.parts()) {
             pose.pushPose();
             pose.translate(part.pos().getX(), part.pos().getY(), part.pos().getZ());
