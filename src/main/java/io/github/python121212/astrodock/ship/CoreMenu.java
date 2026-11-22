@@ -10,7 +10,7 @@ import net.minecraft.world.level.Level;
 
 /** ボタンIDのみを受信し、対象と確認済みの選択はサーバーのメニューに保持する。 */
 public final class CoreMenu extends AbstractContainerMenu {
-    public final BlockPos core;private final Level level;private final ContainerData info=new SimpleContainerData(9);
+    public final BlockPos core;private final Level level;private final ContainerData info=new SimpleContainerData(14);
     private ShellSurvey preview;private long nextScan;
     public CoreMenu(int id,Inventory inventory,BlockPos core){super(ShipParts.CORE_MENU.get(),id);this.core=core;level=inventory.player.level();addDataSlots(info);}
     public boolean cabin(){return level.dimension()==CabinRooms.LEVEL;}

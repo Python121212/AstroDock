@@ -31,7 +31,9 @@ public final class CoreScreen extends AbstractContainerScreen<CoreMenu> {
         g.drawString(font,title,10,10,0xe9f4ff);int s=menu.value(0);
         if(s==1){g.drawString(font,Component.translatable("core.astrodock.count",menu.value(1),menu.value(2)),10,39,0x9df3c5);
             var lo=menu.core.offset(menu.value(3),menu.value(4),menu.value(5));var hi=menu.core.offset(menu.value(6),menu.value(7),menu.value(8));
-            g.drawString(font,lo.toShortString(),10,57,0xffffff);g.drawString(font,"→ "+hi.toShortString(),10,73,0xffffff);
+            g.drawString(font,lo.toShortString(),10,54,0xffffff);g.drawString(font,"→ "+hi.toShortString(),10,68,0xffffff);
+            g.drawString(font,"質量:"+menu.value(9)+" / 排水:"+menu.value(10)+" ("+(menu.value(11)==1?"水密":"浸水")+")",10,84,0x4cc9f0);
+            g.drawString(font,"ノズル:"+menu.value(12)+"%  跳弾:"+menu.value(13)+"%",10,98,0xffd166);
         }else g.drawWordWrap(font,Component.translatable("core.astrodock."+(s==0?(menu.cabin()?"work":"start"):"status"+s)),10,39,204,0xe1eef5);
     }
     @Override public void render(GuiGraphics g,int x,int y,float f){renderBackground(g);super.render(g,x,y,f);renderTooltip(g,x,y);}
