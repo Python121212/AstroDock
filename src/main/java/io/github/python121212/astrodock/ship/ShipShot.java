@@ -64,7 +64,7 @@ public final class ShipShot extends ThrowableItemProjectile {
         if(hit instanceof EntityHitResult h && eligible(h.getEntity())) {
             Entity e=h.getEntity();
             if(e instanceof Ship s) {
-                if (l.random.nextDouble() < s.hull().ricochetChance) {
+                if (l.getRandom().nextDouble() < s.hull().ricochetChance) {
                     s.setDeltaMovement(s.getDeltaMovement().scale(.95));
                     setDeltaMovement(getDeltaMovement().scale(-.65).add(0, .25, 0));
                     l.playSound(null, s.blockPosition(), net.minecraft.sounds.SoundEvents.ANVIL_LAND, net.minecraft.sounds.SoundSource.NEUTRAL, .6f, 1.6f);
