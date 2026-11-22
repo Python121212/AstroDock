@@ -74,5 +74,17 @@
   "item.astrodock.iron_plate": "Iron Plate",
   "item.astrodock.stratasteel_plate": "Stratasteel Plate",
   "item.astrodock.blackshell_plate": "Blackshell Plate",
-  "block.astrodock.nozzle_casing": "Nozzle Casing"
+  "block.astrodock.nozzle_casing": "Nozzle Casing",
+  "block.astrodock.laminated_armor_slope": "Laminated Armor Slope",
+  "block.astrodock.blackshell_armor_slope": "Blackshell Heavy Armor Slope",
+  "block.astrodock.nozzle_casing_slope": "Nozzle Casing Slope",
+  "block.astrodock.mining_laser": "Mining Laser",
+  "block.astrodock.salvage_beam": "Salvage Beam",
+  "block.astrodock.point_defense_laser": "Point Defense Laser",
+  "item.astrodock.laser_cutter": "Laser Cutter",
+  "item.astrodock.welding_torch": "Welding Torch",
+  "block.astrodock.life_support": "Life Support Unit",
+  "block.astrodock.warp_drive": "Warp Drive",
+  "block.astrodock.shield_generator": "Energy Shield Generator",
+  "block.astrodock.planet_scanner": "Planet Scanner"
 }

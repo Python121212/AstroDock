@@ -1,0 +1,6 @@
+{
+  "parent": "astrodock:block/slope_base",
+  "textures": {
+    "all": "astrodock:block/nozzle_casing"
+  }
+}

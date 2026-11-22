@@ -74,5 +74,17 @@
   "item.astrodock.iron_plate": "鉄板",
   "item.astrodock.stratasteel_plate": "層鋼板",
   "item.astrodock.blackshell_plate": "重装甲板",
-  "block.astrodock.nozzle_casing": "ノズル外殻"
+  "block.astrodock.nozzle_casing": "ノズル外殻",
+  "block.astrodock.laminated_armor_slope": "積層装甲スロープ",
+  "block.astrodock.blackshell_armor_slope": "黒殻重装甲スロープ",
+  "block.astrodock.nozzle_casing_slope": "ノズル外殻スロープ",
+  "block.astrodock.mining_laser": "採掘レーザー",
+  "block.astrodock.salvage_beam": "サルベージビーム",
+  "block.astrodock.point_defense_laser": "迎撃レーザー",
+  "item.astrodock.laser_cutter": "レーザーカッター",
+  "item.astrodock.welding_torch": "溶接トーチ",
+  "block.astrodock.life_support": "生命維持・酸素発生装置",
+  "block.astrodock.warp_drive": "ワープドライブ",
+  "block.astrodock.shield_generator": "エネルギーシールド発生機",
+  "block.astrodock.planet_scanner": "惑星スキャナー"
 }

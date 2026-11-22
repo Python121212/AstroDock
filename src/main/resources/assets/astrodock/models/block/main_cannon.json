@@ -1,16 +1,16 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "turret": "astrodock:block/main_cannon",
-    "barrel": "astrodock:block/thruster",
+    "turret": "astrodock:block/main_cannon_side",
+    "barrel": "astrodock:block/cannon_sleeve",
     "accent": "astrodock:block/blackshell_armor",
-    "particle": "astrodock:block/main_cannon"
+    "particle": "astrodock:block/main_cannon_side"
   },
   "elements": [
     {
       "name": "turret_ring",
-      "from": [2, 0, 2],
-      "to": [14, 2, 14],
+      "from": [-2, 0, -2],
+      "to": [18, 3, 18],
       "faces": {
         "north": {"texture": "#accent"},
         "south": {"texture": "#accent"},
@@ -22,8 +22,8 @@
     },
     {
       "name": "turret_hull",
-      "from": [3, 2, 4],
-      "to": [13, 8, 14],
+      "from": [-1, 3, 1],
+      "to": [17, 13, 19],
       "faces": {
         "north": {"texture": "#turret"},
         "south": {"texture": "#turret"},
