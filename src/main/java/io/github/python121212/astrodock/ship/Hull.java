@@ -24,7 +24,7 @@ public final class Hull {
     final List<Part> doors;
     public final boolean hasHelm, hasGravityController;
     public final int engines, floor, height;
-    public final double effectiveEngines;
+    public final double effectiveEngines, streamline, ricochetChance;
     public Hull(List<Part> parts) {
         if (parts.isEmpty() || parts.size() > ShipWrench.MAX_PARTS) throw new IllegalArgumentException("船体サイズが不正です");
         this.parts = List.copyOf(parts);
@@ -53,7 +53,7 @@ public final class Hull {
             if (p.state.is(ShipParts.ENGINE.get())) { engines++; ax+=dx; ay+=dy; az+=dz; }
         }
         hasGravityController=stabilizer; hasHelm=helm; this.engines=engines; armX=(float)ax; armY=(float)ay; armZ=(float)az;
-        int nozzleCount = 0;
+        double nozzleBonus = 0;
         if (engines > 0) {
             Set<BlockPos> thrusterSet = new HashSet<>();
             Set<BlockPos> casingSet = new HashSet<>();
@@ -62,22 +62,49 @@ public final class Hull {
                 else if (pt.state.is(ShipParts.NOZZLE_CASING.get())) casingSet.add(pt.pos);
             }
             if (!casingSet.isEmpty()) {
-                Deque<BlockPos> q = new ArrayDeque<>(thrusterSet);
-                Set<BlockPos> visited = new HashSet<>(thrusterSet);
-                int[][] dirs = {{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
-                while (!q.isEmpty()) {
-                    BlockPos cur = q.poll();
-                    for (int[] dir : dirs) {
-                        BlockPos nxt = cur.offset(dir[0], dir[1], dir[2]);
-                        if (casingSet.contains(nxt) && visited.add(nxt)) {
-                            nozzleCount++;
-                            q.add(nxt);
+                for (BlockPos tPos : thrusterSet) {
+                    if (casingSet.contains(tPos.south())) nozzleBonus -= 0.2; // 真後ろを塞ぐと排気詰まりで遅くなる
+                    Deque<BlockPos> q = new ArrayDeque<>();
+                    Set<BlockPos> visited = new HashSet<>();
+                    q.add(tPos);
+                    visited.add(tPos);
+                    int[][] dirs = {{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
+                    int local = 0;
+                    while (!q.isEmpty() && local < 6) {
+                        BlockPos cur = q.poll();
+                        for (int[] dir : dirs) {
+                            BlockPos nxt = cur.offset(dir[0], dir[1], dir[2]);
+                            if (casingSet.contains(nxt) && visited.add(nxt)) {
+                                local++;
+                                int dz = nxt.getZ() - tPos.getZ();
+                                int lat = Math.abs(nxt.getX() - tPos.getX()) + Math.abs(nxt.getY() - tPos.getY());
+                                if (dz > 0 && lat > 0) nozzleBonus += 0.15; // 後方に広がるノズルは推力向上
+                                else if (dz < 0) nozzleBonus -= 0.1;       // 前方に組むと逆効果
+                                else if (!nxt.equals(tPos.south())) nozzleBonus += 0.08;
+                                q.add(nxt);
+                            }
                         }
                     }
                 }
             }
         }
-        this.effectiveEngines = engines + Math.min(nozzleCount, engines * 4) * 0.125;
+        this.effectiveEngines = engines == 0 ? 0 : Math.max(engines * 0.5, Math.min(engines * 1.5, engines + nozzleBonus));
+
+        double lenZ = Math.max(1, 2 * rz);
+        double cross = Math.max(1, 2 * rx * height);
+        this.streamline = Math.max(0.55, Math.min(1.0, 1.0 - 0.15 * (lenZ / Math.sqrt(cross) - 1.0)));
+
+        Set<BlockPos> solid = new HashSet<>();
+        for (Part pt : parts) solid.add(pt.pos);
+        int sloped = 0;
+        for (Part pt : parts) {
+            boolean hasFront = solid.contains(pt.pos.north());
+            boolean hasBack = solid.contains(pt.pos.south());
+            boolean hasLeft = solid.contains(pt.pos.west());
+            boolean hasRight = solid.contains(pt.pos.east());
+            if ((hasFront ^ hasBack) && (hasLeft ^ hasRight)) sloped++;
+        }
+        this.ricochetChance = parts.isEmpty() ? 0 : Math.min(0.45, (double) sloped / parts.size() * 0.9);
         inertiaTensor=new Matrix3f((float)xx,(float)xy,(float)xz,(float)xy,(float)yy,(float)yz,(float)xz,(float)yz,(float)zz);
         inverseInertia=new Matrix3f(inertiaTensor).invert(); radiusX=rx; radiusZ=rz;
     }

@@ -28,7 +28,7 @@ final class RigidBody {
         float pitchError = lookPitch + (float)Math.asin(Mth.clamp(noseY, -1, 1));
         float fy = -thrust * Mth.sin(pitchError), fz = thrust * Mth.cos(pitchError);
         attitude.transform(tmp.set(0, fy, fz));
-        double drag = 1 - 0.055 * air, a = h.effectiveEngines / h.mass;
+        double drag = 1 - 0.055 * air * h.streamline, a = h.effectiveEngines / h.mass;
         // 垂直推進はワールドの上方向。長押し中は重力に対抗し、機体質量に応じて加速する。
         double lift=rising && supply>0 && h.engines>0 ? 0.8*a*supply : a*tmp.y-0.035*(1-Atmosphere.gravityLoss(altitude));
         double x=v.x*drag+a*tmp.x, y=v.y*(1-h.verticalDrag*air)+lift, z=v.z*drag+a*tmp.z;
