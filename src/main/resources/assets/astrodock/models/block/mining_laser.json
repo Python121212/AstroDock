@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "astrodock:block/main_cannon"
+    "all": "astrodock:block/main_cannon_side"
   }
 }

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "astrodock:block/gravity_controller"
+    "all": "astrodock:block/gravity_controller_side"
   }
 }

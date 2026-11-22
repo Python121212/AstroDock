@@ -25,9 +25,15 @@ final class MainCannonBlock extends HorizontalDirectionalBlock implements Entity
     @Override public VoxelShape getShape(BlockState s,BlockGetter level,BlockPos p,CollisionContext ctx){return box(0,0,0,16,10,16);}
     @Override public BlockEntity newBlockEntity(BlockPos p,BlockState s){return new CannonMount(p,s);}
     @Override public InteractionResult use(BlockState s,Level l,BlockPos pos,Player p,InteractionHand hand,BlockHitResult hit){
-        if(!p.getItemInHand(hand).isEmpty())return InteractionResult.PASS;
-        if(!l.isClientSide && l.getBlockEntity(pos) instanceof CannonMount mount)
-            p.displayClientMessage(Component.translatable("hint.astrodock.cannon_log",mount.shots(),REQUIRED_OUTPUT),true);
+        if(!l.isClientSide){
+            if(p.isShiftKeyDown() && l.getBlockEntity(pos) instanceof CannonMount mount){
+                p.displayClientMessage(Component.translatable("hint.astrodock.cannon_log",mount.shots(),REQUIRED_OUTPUT),true);
+            }else{
+                BlockState rotated=s.setValue(FACING,s.getValue(FACING).getClockWise());
+                l.setBlock(pos,rotated,3);
+                p.displayClientMessage(Component.literal("主砲方位: "+rotated.getValue(FACING).getName()),true);
+            }
+        }
         return InteractionResult.sidedSuccess(l.isClientSide);
     }
 }

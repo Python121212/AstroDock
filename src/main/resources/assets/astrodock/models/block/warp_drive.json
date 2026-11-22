@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "astrodock:block/power_unit"
+    "all": "astrodock:block/power_unit_side"
   }
 }
