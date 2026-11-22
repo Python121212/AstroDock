@@ -30,6 +30,7 @@ jobs:
           grep -F 'AstroDock ship round trip verified' build/gametest/logs/latest.log
           grep -F 'AstroDock inertia control verified' build/gametest/logs/latest.log
           grep -F 'AstroDock armor flight verified' build/gametest/logs/latest.log
+          grep -F 'AstroDock custom nozzle verified' build/gametest/logs/latest.log
           grep -F 'AstroDock rigid body verified' build/gametest/logs/latest.log
           grep -F 'AstroDock orbit prefetch verified' build/gametest/logs/latest.log
           grep -F 'AstroDock pilot controls verified' build/gametest/logs/latest.log

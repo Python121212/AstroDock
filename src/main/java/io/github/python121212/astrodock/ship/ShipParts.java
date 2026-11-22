@@ -31,6 +31,7 @@ public final class ShipParts {
     public static final RegistryObject<Item> STRATASTEEL_FLAKE = ITEMS.register("stratasteel_flake", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> RAW_BLACKSHELL = ITEMS.register("raw_blackshell", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> BLACKSHELL_INGOT = ITEMS.register("blackshell_ingot", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Block> NOZZLE_CASING = part("nozzle_casing", pr -> new Block(pr.strength(5, 24).sound(SoundType.METAL)));
     public static final RegistryObject<Item> IRON_PLATE = ITEMS.register("iron_plate", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> STRATASTEEL_PLATE = ITEMS.register("stratasteel_plate", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> BLACKSHELL_PLATE = ITEMS.register("blackshell_plate", () -> new Item(new Item.Properties()));
@@ -68,6 +69,7 @@ public final class ShipParts {
                 output.accept(IRON_PLATE.get());
                 output.accept(STRATASTEEL_PLATE.get());
                 output.accept(BLACKSHELL_PLATE.get());
+                output.accept(NOZZLE_CASING.get());
             }).build());
 
     private static RegistryObject<Block> part(String id, Function<BlockBehaviour.Properties,Block> factory) {

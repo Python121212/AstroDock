@@ -40,7 +40,7 @@ public class DepartureGameTest {
         test.assertTrue(tab.getIconItem().is(ShipParts.CORE.get().asItem()),"コアのアイコンがありません");
         test.assertTrue(tab.getDisplayItems().stream().map(ItemStack::getItem).toList().equals(List.of(
                 ShipParts.CORE.get().asItem(),ShipParts.ENGINE.get().asItem(),ShipParts.HELM.get().asItem(),ShipParts.CONSOLE.get().asItem(),ShipParts.AIRLOCK.get().asItem(),ShipParts.HATCH.get().asItem(),ShipParts.CANNON.get().asItem(),ShipParts.MISSILES.get().asItem(),ShipParts.TORPEDOES.get().asItem(),ShipParts.WRENCH.get(),AstroDock.CAPSULE.get(),ShipParts.PLANT.get().asItem(),ShipParts.DRIVE.get().asItem(),ShipParts.GENERATOR.get().asItem(),ShipParts.COOLER.get().asItem(),ShipParts.GRAVITY_CONTROLLER.get().asItem(),
-                ShipParts.STRATASTEEL_ORE.get().asItem(),ShipParts.BLACKSHELL_ORE.get().asItem(),ShipParts.LAMINATED_ARMOR.get().asItem(),ShipParts.BLACKSHELL_ARMOR.get().asItem(),ShipParts.STRATASTEEL_FLAKE.get(),ShipParts.RAW_BLACKSHELL.get(),ShipParts.BLACKSHELL_INGOT.get(),ShipParts.IRON_PLATE.get(),ShipParts.STRATASTEEL_PLATE.get(),ShipParts.BLACKSHELL_PLATE.get())),"造船所の登録内容が不正");
+                ShipParts.STRATASTEEL_ORE.get().asItem(),ShipParts.BLACKSHELL_ORE.get().asItem(),ShipParts.LAMINATED_ARMOR.get().asItem(),ShipParts.BLACKSHELL_ARMOR.get().asItem(),ShipParts.STRATASTEEL_FLAKE.get(),ShipParts.RAW_BLACKSHELL.get(),ShipParts.BLACKSHELL_INGOT.get(),ShipParts.IRON_PLATE.get(),ShipParts.STRATASTEEL_PLATE.get(),ShipParts.BLACKSHELL_PLATE.get(),ShipParts.NOZZLE_CASING.get().asItem())),"造船所の登録内容が不正");
         com.mojang.logging.LogUtils.getLogger().info("AstroDock shipyard verified");test.succeed();
     }
 }
