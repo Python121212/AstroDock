@@ -1,16 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " F ",
-    "FIF",
-    " F "
+    " P ",
+    "PIP",
+    " P "
   ],
   "key": {
-    "F": {
-      "item": "astrodock:blackshell_ingot"
+    "P": {
+      "item": "astrodock:blackshell_plate"
     },
     "I": {
-      "item": "minecraft:iron_ingot"
+      "item": "astrodock:iron_plate"
     }
   },
   "result": {

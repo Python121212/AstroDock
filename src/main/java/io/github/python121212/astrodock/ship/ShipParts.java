@@ -31,6 +31,9 @@ public final class ShipParts {
     public static final RegistryObject<Item> STRATASTEEL_FLAKE = ITEMS.register("stratasteel_flake", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> RAW_BLACKSHELL = ITEMS.register("raw_blackshell", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> BLACKSHELL_INGOT = ITEMS.register("blackshell_ingot", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> IRON_PLATE = ITEMS.register("iron_plate", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> STRATASTEEL_PLATE = ITEMS.register("stratasteel_plate", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> BLACKSHELL_PLATE = ITEMS.register("blackshell_plate", () -> new Item(new Item.Properties()));
     static final RegistryObject<BlockEntityType<EngineAnchor>> ANCHOR=TILES.register("engine_core",()->BlockEntityType.Builder.of(EngineAnchor::new,PLANT.get()).build(null));
     public static final RegistryObject<Block> CONSOLE = part("engine_console", Block::new);
     public static final RegistryObject<Block> GRAVITY_CONTROLLER = part("gravity_controller", Block::new);
@@ -62,6 +65,9 @@ public final class ShipParts {
                 output.accept(STRATASTEEL_FLAKE.get());
                 output.accept(RAW_BLACKSHELL.get());
                 output.accept(BLACKSHELL_INGOT.get());
+                output.accept(IRON_PLATE.get());
+                output.accept(STRATASTEEL_PLATE.get());
+                output.accept(BLACKSHELL_PLATE.get());
             }).build());
 
     private static RegistryObject<Block> part(String id, Function<BlockBehaviour.Properties,Block> factory) {

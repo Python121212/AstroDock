@@ -70,5 +70,8 @@
   "block.astrodock.blackshell_armor": "Blackshell Heavy Armor",
   "item.astrodock.stratasteel_flake": "Stratasteel Flake",
   "item.astrodock.raw_blackshell": "Raw Blackshell",
-  "item.astrodock.blackshell_ingot": "Blackshell Ingot"
+  "item.astrodock.blackshell_ingot": "Blackshell Ingot",
+  "item.astrodock.iron_plate": "Iron Plate",
+  "item.astrodock.stratasteel_plate": "Stratasteel Plate",
+  "item.astrodock.blackshell_plate": "Blackshell Plate"
 }

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "astrodock:iron_plate"
+    },
+    {
+      "item": "astrodock:blackshell_ingot"
+    }
+  ],
+  "result": {
+    "item": "astrodock:blackshell_plate"
+  }
+}
