@@ -26,7 +26,7 @@ public class EnergyTurretTest {
         l.setBlockAndUpdate(core,ShipParts.CORE.get().defaultBlockState());l.setBlockAndUpdate(core.north(),ShipParts.ENGINE.get().defaultBlockState());
         p.setPos(Vec3.atBottomCenterOf(core.south(2)));p.setYRot(0);p.setXRot(0);p.getAbilities().instabuild=false;
         var grid=new TransientCraftingContainer(p.inventoryMenu,3,3);
-        grid.setItem(1,new ItemStack(Items.IRON_INGOT));grid.setItem(3,new ItemStack(Items.DISPENSER));
+        grid.setItem(1,new ItemStack(ShipParts.IRON_PLATE.get()));grid.setItem(3,new ItemStack(Items.DISPENSER));
         grid.setItem(4,new ItemStack(Items.IRON_BLOCK));grid.setItem(5,new ItemStack(Items.DISPENSER));grid.setItem(7,new ItemStack(Items.REDSTONE));
         var recipe=l.getRecipeManager().getRecipeFor(RecipeType.CRAFTING,grid,l).orElseThrow();
         var hand=recipe.assemble(grid,l.registryAccess());t.assertTrue(hand.is(ShipParts.CANNON.get().asItem()) && hand.getCount()==1,"主砲をクラフトできない");

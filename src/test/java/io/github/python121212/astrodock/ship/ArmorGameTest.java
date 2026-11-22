@@ -32,7 +32,7 @@ public class ArmorGameTest {
             var feature=access.registryOrThrow(Registries.PLACED_FEATURE).getOrThrow(ResourceKey.create(Registries.PLACED_FEATURE,new ResourceLocation("astrodock",id)));
             test.assertTrue(plains.getGenerationSettings().hasFeature(feature),"平原に鉱脈が登録されていない: "+id);
         }
-        for(String recipe:List.of("laminated_armor","blackshell_armor","blackshell_ingot_from_smelting","blackshell_ingot_from_blasting"))
+        for(String recipe:List.of("laminated_armor","blackshell_armor","blackshell_ingot_from_smelting","blackshell_ingot_from_blasting","iron_plate","stratasteel_plate","blackshell_plate"))
             test.assertTrue(level.getRecipeManager().byKey(new ResourceLocation("astrodock",recipe)).isPresent(),"レシピがない: "+recipe);
         var light=hull(ShipParts.LAMINATED_ARMOR.get());var heavy=hull(ShipParts.BLACKSHELL_ARMOR.get());
         test.assertTrue(heavy.mass>light.mass && fly(heavy,1,64).z<fly(light,1,64).z,"重装甲で水平加速が落ちない");

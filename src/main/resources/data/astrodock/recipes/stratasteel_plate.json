@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "astrodock:iron_plate"
+    },
+    {
+      "item": "astrodock:stratasteel_flake"
+    }
+  ],
+  "result": {
+    "item": "astrodock:stratasteel_plate"
+  }
+}
