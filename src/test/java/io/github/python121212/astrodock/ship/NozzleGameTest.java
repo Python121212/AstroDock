@@ -55,6 +55,12 @@ public class NozzleGameTest {
                 new Hull.Part(new BlockPos(1, 0, 2), iron, 4), new Hull.Part(new BlockPos(1, 0, 3), iron, 4)
         ));
         test.assertTrue(sleek.streamline < bare.streamline && sleek.ricochetChance > 0, "船体形状の流線型・跳弾判定が不正");
+        var slopedHull = new Hull(List.of(
+                new Hull.Part(BlockPos.ZERO, thruster, 4),
+                new Hull.Part(BlockPos.ZERO.east(), Blocks.STONE_STAIRS.defaultBlockState(), 4),
+                new Hull.Part(BlockPos.ZERO.west(), Blocks.SMOOTH_STONE_SLAB.defaultBlockState(), 4)
+        ));
+        test.assertTrue(slopedHull.ricochetChance > bare.ricochetChance, "階段・ハーフ・FramedBlocks互換の跳弾判定が不正");
 
         List<Hull.Part> sealedParts = new java.util.ArrayList<>();
         List<Hull.Part> holedParts = new java.util.ArrayList<>();

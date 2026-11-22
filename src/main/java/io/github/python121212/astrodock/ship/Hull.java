@@ -102,7 +102,12 @@ public final class Hull {
             boolean hasBack = solid.contains(pt.pos.south());
             boolean hasLeft = solid.contains(pt.pos.west());
             boolean hasRight = solid.contains(pt.pos.east());
-            if ((hasFront ^ hasBack) && (hasLeft ^ hasRight)) sloped++;
+            var key = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(pt.state.getBlock());
+            String path = key != null ? key.getPath() : "";
+            boolean shaped = (key != null && "framedblocks".equals(key.getNamespace()))
+                    || path.contains("slope") || path.contains("stairs") || path.contains("slab")
+                    || path.contains("wedge") || path.contains("corner") || path.contains("prism");
+            if (((hasFront ^ hasBack) && (hasLeft ^ hasRight)) || shaped) sloped++;
         }
         this.ricochetChance = parts.isEmpty() ? 0 : Math.min(0.45, (double) sloped / parts.size() * 0.9);
 
