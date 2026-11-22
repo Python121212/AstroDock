@@ -29,6 +29,7 @@ import net.minecraft.core.Direction;
 
 public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     private Hull hull;
+    private final List<BlockPos> damageMarks = new ArrayList<>();
     private final long[] nextShot=new long[ShipWeapon.values().length];
     int roomId; // 0 は 0.9 以前の船体
     private CabinRooms.Room room() {return roomId==0?null:CabinRooms.data((ServerLevel)level()).get(roomId);}
@@ -57,6 +58,24 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     private double tx,ty,tz; private float targetYaw;
     public Ship(EntityType<? extends Ship> type,Level level) { super(type,level); blocksBuilding=true; }
     public Hull hull() { return hull; }
+    void addDamageMark(Vec3 worldHit) {
+        BlockPos local = BlockPos.containing(worldHit.subtract(position()));
+        if (damageMarks.size() < 16) damageMarks.add(local);
+    }
+    void breachAt(Vec3 worldHit, int radius) {
+        addDamageMark(worldHit);
+        BlockPos center = BlockPos.containing(worldHit.subtract(position()));
+        List<Hull.Part> remaining = new ArrayList<>();
+        boolean changed = false;
+        for (Hull.Part pt : hull.parts) {
+            if (pt.state().is(ShipParts.CORE.get())) { remaining.add(pt); continue; }
+            double d2 = pt.pos().distSqr(center);
+            double jitter = ((pt.pos().getX() * 31 + pt.pos().getY() * 17 + pt.pos().getZ() * 13) & 1) * 0.6;
+            if (d2 <= radius * radius + jitter) { changed = true; continue; }
+            remaining.add(pt);
+        }
+        if (changed && !remaining.isEmpty()) hull = new Hull(remaining);
+    }
     void configure(Hull h,UUID owner) { this.hull=h;this.owner=owner;refreshBounds(); }
     public Quaternionf renderRotation(float partial) { return previous.nlerp(body.attitude,partial,new Quaternionf()); }
     // |R| × 半径から保守的な AABB を計算。並進だけなら再計算しない。
@@ -367,6 +386,12 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
                 pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, yaw, roll?lateral:0, pilot!=null && pilot.jumping,engineOn()?supply:0);
         if (level().dimension() == io.github.python121212.astrodock.AstroDock.ORBIT && ((engineOn() || velocity.lengthSqr() > 1e-6) && altitude >= io.github.python121212.astrodock.Atmosphere.SPACE + 1000)) {
             velocity = velocity.add(io.github.python121212.astrodock.SolarActivity.solarWind(altitude, level().getGameTime(), hull.mass));
+        }
+        if (level().isClientSide && !damageMarks.isEmpty() && tickCount % 4 == 0) {
+            for (BlockPos mark : damageMarks) {
+                level().addParticle(net.minecraft.core.particles.ParticleTypes.LARGE_SMOKE,
+                        getX() + mark.getX(), getY() + mark.getY() + 0.5, getZ() + mark.getZ(), 0, 0.04, 0);
+            }
         }
         if (isInWater()) {
             if (hull.watertight && hull.displacementCapacity > hull.mass) {
