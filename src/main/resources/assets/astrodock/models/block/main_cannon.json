@@ -1,557 +1,119 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "astrodock:block/main_cannon_side",
-    "plate": "astrodock:block/main_cannon_side",
-    "base": "astrodock:block/core_armor",
-    "sleeve": "astrodock:block/cannon_sleeve",
-    "pulse": "astrodock:block/main_cannon_face"
+    "turret": "astrodock:block/main_cannon",
+    "barrel": "astrodock:block/thruster",
+    "accent": "astrodock:block/blackshell_armor",
+    "particle": "astrodock:block/main_cannon"
   },
   "elements": [
     {
-      "name": "turntable",
-      "from": [
-        2,
-        0,
-        6
-      ],
-      "to": [
-        14,
-        1.5,
-        15
-      ],
+      "name": "turret_ring",
+      "from": [2, 0, 2],
+      "to": [14, 2, 14],
       "faces": {
-        "north": {
-          "texture": "#base"
-        },
-        "east": {
-          "texture": "#base"
-        },
-        "south": {
-          "texture": "#base"
-        },
-        "west": {
-          "texture": "#base"
-        },
-        "up": {
-          "texture": "#base"
-        },
-        "down": {
-          "texture": "#base"
-        }
+        "north": {"texture": "#accent"},
+        "south": {"texture": "#accent"},
+        "west":  {"texture": "#accent"},
+        "east":  {"texture": "#accent"},
+        "up":    {"texture": "#accent"},
+        "down":  {"texture": "#accent"}
       }
     },
     {
-      "name": "ring",
-      "from": [
-        1,
-        1.5,
-        6
-      ],
-      "to": [
-        15,
-        2.5,
-        15
-      ],
+      "name": "turret_hull",
+      "from": [3, 2, 4],
+      "to": [13, 8, 14],
       "faces": {
-        "north": {
-          "texture": "#sleeve"
-        },
-        "east": {
-          "texture": "#sleeve"
-        },
-        "south": {
-          "texture": "#sleeve"
-        },
-        "west": {
-          "texture": "#sleeve"
-        },
-        "up": {
-          "texture": "#sleeve"
-        },
-        "down": {
-          "texture": "#sleeve"
-        }
+        "north": {"texture": "#turret"},
+        "south": {"texture": "#turret"},
+        "west":  {"texture": "#turret"},
+        "east":  {"texture": "#turret"},
+        "up":    {"texture": "#turret"}
       }
     },
     {
-      "name": "armour",
-      "from": [
-        1,
-        2.5,
-        7
-      ],
-      "to": [
-        15,
-        8,
-        15
-      ],
+      "name": "turret_roof",
+      "from": [4, 8, 5],
+      "to": [12, 9.5, 13],
       "faces": {
-        "north": {
-          "texture": "#plate"
-        },
-        "east": {
-          "texture": "#plate"
-        },
-        "south": {
-          "texture": "#plate"
-        },
-        "west": {
-          "texture": "#plate"
-        },
-        "up": {
-          "texture": "#plate"
-        },
-        "down": {
-          "texture": "#plate"
-        }
+        "north": {"texture": "#turret"},
+        "south": {"texture": "#turret"},
+        "west":  {"texture": "#turret"},
+        "east":  {"texture": "#turret"},
+        "up":    {"texture": "#turret"}
       }
     },
     {
-      "name": "front mantlet",
-      "from": [
-        2,
-        3,
-        6
-      ],
-      "to": [
-        14,
-        7.5,
-        7
-      ],
+      "name": "rangefinder_left",
+      "from": [1, 5, 8],
+      "to": [3, 7, 11],
       "faces": {
-        "north": {
-          "texture": "#base"
-        },
-        "east": {
-          "texture": "#base"
-        },
-        "south": {
-          "texture": "#base"
-        },
-        "west": {
-          "texture": "#base"
-        },
-        "up": {
-          "texture": "#base"
-        },
-        "down": {
-          "texture": "#base"
-        }
+        "north": {"texture": "#accent"},
+        "south": {"texture": "#accent"},
+        "west":  {"texture": "#accent"},
+        "up":    {"texture": "#accent"},
+        "down":  {"texture": "#accent"}
       }
     },
     {
-      "name": "upper armour",
-      "from": [
-        2,
-        8,
-        8
-      ],
-      "to": [
-        14,
-        9,
-        14.5
-      ],
+      "name": "rangefinder_right",
+      "from": [13, 5, 8],
+      "to": [15, 7, 11],
       "faces": {
-        "north": {
-          "texture": "#plate"
-        },
-        "east": {
-          "texture": "#plate"
-        },
-        "south": {
-          "texture": "#plate"
-        },
-        "west": {
-          "texture": "#plate"
-        },
-        "up": {
-          "texture": "#plate"
-        },
-        "down": {
-          "texture": "#plate"
-        }
+        "north": {"texture": "#accent"},
+        "south": {"texture": "#accent"},
+        "east":  {"texture": "#accent"},
+        "up":    {"texture": "#accent"},
+        "down":  {"texture": "#accent"}
       }
     },
     {
-      "name": "roof",
-      "from": [
-        3,
-        9,
-        8.5
-      ],
-      "to": [
-        13,
-        9.7,
-        14
-      ],
+      "name": "counterweight",
+      "from": [4, 3, 14],
+      "to": [12, 7, 15.8],
       "faces": {
-        "north": {
-          "texture": "#plate"
-        },
-        "east": {
-          "texture": "#plate"
-        },
-        "south": {
-          "texture": "#plate"
-        },
-        "west": {
-          "texture": "#plate"
-        },
-        "up": {
-          "texture": "#plate"
-        },
-        "down": {
-          "texture": "#plate"
-        }
+        "south": {"texture": "#accent"},
+        "west":  {"texture": "#accent"},
+        "east":  {"texture": "#accent"},
+        "up":    {"texture": "#accent"},
+        "down":  {"texture": "#accent"}
       }
     },
     {
-      "name": "rangefinder",
-      "from": [
-        1,
-        9.5,
-        11
-      ],
-      "to": [
-        15,
-        10.5,
-        12.5
-      ],
+      "name": "barrel_left",
+      "from": [4.2, 4.5, -5],
+      "to": [5.8, 6.1, 5],
       "faces": {
-        "north": {
-          "texture": "#sleeve"
-        },
-        "east": {
-          "texture": "#sleeve"
-        },
-        "south": {
-          "texture": "#sleeve"
-        },
-        "west": {
-          "texture": "#sleeve"
-        },
-        "up": {
-          "texture": "#sleeve"
-        },
-        "down": {
-          "texture": "#sleeve"
-        }
+        "north": {"texture": "#accent"},
+        "west":  {"texture": "#barrel"},
+        "east":  {"texture": "#barrel"},
+        "up":    {"texture": "#barrel"},
+        "down":  {"texture": "#barrel"}
       }
     },
     {
-      "name": "collar0",
-      "from": [
-        2.0,
-        4,
-        4.7
-      ],
-      "to": [
-        5.0,
-        7,
-        7
-      ],
+      "name": "barrel_center",
+      "from": [7.2, 4.5, -5.5],
+      "to": [8.8, 6.1, 5],
       "faces": {
-        "north": {
-          "texture": "#sleeve"
-        },
-        "east": {
-          "texture": "#sleeve"
-        },
-        "south": {
-          "texture": "#sleeve"
-        },
-        "west": {
-          "texture": "#sleeve"
-        },
-        "up": {
-          "texture": "#sleeve"
-        },
-        "down": {
-          "texture": "#sleeve"
-        }
+        "north": {"texture": "#accent"},
+        "west":  {"texture": "#barrel"},
+        "east":  {"texture": "#barrel"},
+        "up":    {"texture": "#barrel"},
+        "down":  {"texture": "#barrel"}
       }
     },
     {
-      "name": "barrel0",
-      "from": [
-        2.6,
-        4.7,
-        0.4
-      ],
-      "to": [
-        4.4,
-        6.4,
-        5
-      ],
+      "name": "barrel_right",
+      "from": [10.2, 4.5, -5],
+      "to": [11.8, 6.1, 5],
       "faces": {
-        "north": {
-          "texture": "#plate"
-        },
-        "east": {
-          "texture": "#plate"
-        },
-        "south": {
-          "texture": "#plate"
-        },
-        "west": {
-          "texture": "#plate"
-        },
-        "up": {
-          "texture": "#plate"
-        },
-        "down": {
-          "texture": "#plate"
-        }
-      }
-    },
-    {
-      "name": "energy aperture0",
-      "from": [
-        2.4,
-        4.5,
-        0
-      ],
-      "to": [
-        4.6,
-        6.6,
-        1.4
-      ],
-      "faces": {
-        "north": {
-          "texture": "#pulse",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "east": {
-          "texture": "#sleeve"
-        },
-        "south": {
-          "texture": "#sleeve"
-        },
-        "west": {
-          "texture": "#sleeve"
-        },
-        "up": {
-          "texture": "#sleeve"
-        },
-        "down": {
-          "texture": "#sleeve"
-        }
-      }
-    },
-    {
-      "name": "collar1",
-      "from": [
-        6.5,
-        4,
-        4.7
-      ],
-      "to": [
-        9.5,
-        7,
-        7
-      ],
-      "faces": {
-        "north": {
-          "texture": "#sleeve"
-        },
-        "east": {
-          "texture": "#sleeve"
-        },
-        "south": {
-          "texture": "#sleeve"
-        },
-        "west": {
-          "texture": "#sleeve"
-        },
-        "up": {
-          "texture": "#sleeve"
-        },
-        "down": {
-          "texture": "#sleeve"
-        }
-      }
-    },
-    {
-      "name": "barrel1",
-      "from": [
-        7.1,
-        4.7,
-        0.4
-      ],
-      "to": [
-        8.9,
-        6.4,
-        5
-      ],
-      "faces": {
-        "north": {
-          "texture": "#plate"
-        },
-        "east": {
-          "texture": "#plate"
-        },
-        "south": {
-          "texture": "#plate"
-        },
-        "west": {
-          "texture": "#plate"
-        },
-        "up": {
-          "texture": "#plate"
-        },
-        "down": {
-          "texture": "#plate"
-        }
-      }
-    },
-    {
-      "name": "energy aperture1",
-      "from": [
-        6.9,
-        4.5,
-        0
-      ],
-      "to": [
-        9.1,
-        6.6,
-        1.4
-      ],
-      "faces": {
-        "north": {
-          "texture": "#pulse",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "east": {
-          "texture": "#sleeve"
-        },
-        "south": {
-          "texture": "#sleeve"
-        },
-        "west": {
-          "texture": "#sleeve"
-        },
-        "up": {
-          "texture": "#sleeve"
-        },
-        "down": {
-          "texture": "#sleeve"
-        }
-      }
-    },
-    {
-      "name": "collar2",
-      "from": [
-        11.0,
-        4,
-        4.7
-      ],
-      "to": [
-        14.0,
-        7,
-        7
-      ],
-      "faces": {
-        "north": {
-          "texture": "#sleeve"
-        },
-        "east": {
-          "texture": "#sleeve"
-        },
-        "south": {
-          "texture": "#sleeve"
-        },
-        "west": {
-          "texture": "#sleeve"
-        },
-        "up": {
-          "texture": "#sleeve"
-        },
-        "down": {
-          "texture": "#sleeve"
-        }
-      }
-    },
-    {
-      "name": "barrel2",
-      "from": [
-        11.6,
-        4.7,
-        0.4
-      ],
-      "to": [
-        13.4,
-        6.4,
-        5
-      ],
-      "faces": {
-        "north": {
-          "texture": "#plate"
-        },
-        "east": {
-          "texture": "#plate"
-        },
-        "south": {
-          "texture": "#plate"
-        },
-        "west": {
-          "texture": "#plate"
-        },
-        "up": {
-          "texture": "#plate"
-        },
-        "down": {
-          "texture": "#plate"
-        }
-      }
-    },
-    {
-      "name": "energy aperture2",
-      "from": [
-        11.4,
-        4.5,
-        0
-      ],
-      "to": [
-        13.6,
-        6.6,
-        1.4
-      ],
-      "faces": {
-        "north": {
-          "texture": "#pulse",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "east": {
-          "texture": "#sleeve"
-        },
-        "south": {
-          "texture": "#sleeve"
-        },
-        "west": {
-          "texture": "#sleeve"
-        },
-        "up": {
-          "texture": "#sleeve"
-        },
-        "down": {
-          "texture": "#sleeve"
-        }
+        "north": {"texture": "#accent"},
+        "west":  {"texture": "#barrel"},
+        "east":  {"texture": "#barrel"},
+        "up":    {"texture": "#barrel"},
+        "down":  {"texture": "#barrel"}
       }
     }
   ]

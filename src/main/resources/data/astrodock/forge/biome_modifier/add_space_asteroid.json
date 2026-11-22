@@ -1,0 +1,8 @@
+{
+  "type": "forge:add_features",
+  "biomes": [
+    "minecraft:the_void"
+  ],
+  "features": "astrodock:space_asteroid",
+  "step": "top_layer_modification"
+}
