@@ -90,8 +90,8 @@ public final class Hull {
         }
         this.effectiveEngines = engines == 0 ? 0 : Math.max(engines * 0.5, Math.min(engines * 1.5, engines + nozzleBonus));
 
-        double lenZ = Math.max(1, maxZ - minZ + 1);
-        double cross = Math.max(1, (maxX - minX + 1) * (maxY - minY + 1));
+        double lenZ = Math.max(1, 2 * radiusZ);
+        double cross = Math.max(1, 2 * radiusX * height);
         this.streamline = Math.max(0.55, Math.min(1.0, 1.0 - 0.15 * (lenZ / Math.sqrt(cross) - 1.0)));
 
         Set<BlockPos> solid = new HashSet<>();
