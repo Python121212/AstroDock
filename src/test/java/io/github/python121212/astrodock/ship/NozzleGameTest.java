@@ -4,6 +4,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.gametest.*;
 
@@ -17,7 +18,12 @@ public class NozzleGameTest {
 
         var thruster = ShipParts.ENGINE.get().defaultBlockState();
         var nozzle = ShipParts.NOZZLE_CASING.get().defaultBlockState();
-        var bare = new Hull(List.of(new Hull.Part(BlockPos.ZERO, thruster, 4)));
+        var iron = Blocks.IRON_BLOCK.defaultBlockState();
+        var bare = new Hull(List.of(
+                new Hull.Part(BlockPos.ZERO, thruster, 4),
+                new Hull.Part(BlockPos.ZERO.south(), iron, 4),
+                new Hull.Part(BlockPos.ZERO.south().east(), iron, 4)
+        ));
         var equipped = new Hull(List.of(
                 new Hull.Part(BlockPos.ZERO, thruster, 4),
                 new Hull.Part(BlockPos.ZERO.south(), nozzle, 4),
