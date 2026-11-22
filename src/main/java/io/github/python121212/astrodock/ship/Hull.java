@@ -106,46 +106,45 @@ public final class Hull {
         }
         this.ricochetChance = parts.isEmpty() ? 0 : Math.min(0.45, (double) sloped / parts.size() * 0.9);
 
-        int bMinX = Integer.MAX_VALUE, bMinY = Integer.MAX_VALUE, bMinZ = Integer.MAX_VALUE;
-        int bMaxX = Integer.MIN_VALUE, bMaxY = Integer.MIN_VALUE, bMaxZ = Integer.MIN_VALUE;
-        for (Part pt : parts) {
-            bMinX = Math.min(bMinX, pt.pos.getX()); bMaxX = Math.max(bMaxX, pt.pos.getX());
-            bMinY = Math.min(bMinY, pt.pos.getY()); bMaxY = Math.max(bMaxY, pt.pos.getY());
-            bMinZ = Math.min(bMinZ, pt.pos.getZ()); bMaxZ = Math.max(bMaxZ, pt.pos.getZ());
-        }
-        boolean sealed = !parts.isEmpty();
-        if (sealed && bMaxX - bMinX >= 2 && bMaxY - bMinY >= 2 && bMaxZ - bMinZ >= 2) {
-            Set<BlockPos> outside = new HashSet<>();
-            Deque<BlockPos> q = new ArrayDeque<>();
-            BlockPos start = new BlockPos(bMinX - 1, bMinY - 1, bMinZ - 1);
-            outside.add(start);
-            q.add(start);
-            int[][] dirs = {{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
-            while (!q.isEmpty()) {
-                BlockPos cur = q.poll();
-                for (int[] dir : dirs) {
-                    BlockPos nxt = cur.offset(dir[0], dir[1], dir[2]);
-                    if (nxt.getX() < bMinX - 1 || nxt.getX() > bMaxX + 1
-                            || nxt.getY() < bMinY - 1 || nxt.getY() > bMaxY + 1
-                            || nxt.getZ() < bMinZ - 1 || nxt.getZ() > bMaxZ + 1) continue;
-                    if (!solid.contains(nxt) && outside.add(nxt)) q.add(nxt);
-                }
-            }
-            for (int x = bMinX + 1; x < bMaxX && sealed; x++) {
-                for (int y = bMinY + 1; y < bMaxY && sealed; y++) {
-                    for (int z = bMinZ + 1; z < bMaxZ; z++) {
-                        BlockPos inner = new BlockPos(x, y, z);
-                        if (!solid.contains(inner) && outside.contains(inner)) {
-                            sealed = false;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        this.watertight = sealed;
+        this.watertight = isWatertight(parts, solid);
         inertiaTensor=new Matrix3f((float)xx,(float)xy,(float)xz,(float)xy,(float)yy,(float)yz,(float)xz,(float)yz,(float)zz);
         inverseInertia=new Matrix3f(inertiaTensor).invert(); radiusX=rx; radiusZ=rz;
+    }
+    private static boolean isWatertight(List<Part> parts, Set<BlockPos> solid) {
+        if (parts.isEmpty()) return false;
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+        for (Part pt : parts) {
+            minX = Math.min(minX, pt.pos.getX()); maxX = Math.max(maxX, pt.pos.getX());
+            minY = Math.min(minY, pt.pos.getY()); maxY = Math.max(maxY, pt.pos.getY());
+            minZ = Math.min(minZ, pt.pos.getZ()); maxZ = Math.max(maxZ, pt.pos.getZ());
+        }
+        if (maxX - minX < 2 || maxY - minY < 2 || maxZ - minZ < 2) return true;
+        Set<BlockPos> outside = new HashSet<>();
+        Deque<BlockPos> q = new ArrayDeque<>();
+        BlockPos start = new BlockPos(minX - 1, minY - 1, minZ - 1);
+        outside.add(start);
+        q.add(start);
+        int[][] dirs = {{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
+        while (!q.isEmpty()) {
+            BlockPos cur = q.poll();
+            for (int[] dir : dirs) {
+                BlockPos nxt = cur.offset(dir[0], dir[1], dir[2]);
+                if (nxt.getX() < minX - 1 || nxt.getX() > maxX + 1
+                        || nxt.getY() < minY - 1 || nxt.getY() > maxY + 1
+                        || nxt.getZ() < minZ - 1 || nxt.getZ() > maxZ + 1) continue;
+                if (!solid.contains(nxt) && outside.add(nxt)) q.add(nxt);
+            }
+        }
+        for (int x = minX + 1; x < maxX; x++) {
+            for (int y = minY + 1; y < maxY; y++) {
+                for (int z = minZ + 1; z < maxZ; z++) {
+                    BlockPos inner = new BlockPos(x, y, z);
+                    if (!solid.contains(inner) && outside.contains(inner)) return false;
+                }
+            }
+        }
+        return true;
     }
     static double partMass(BlockState state,float hardness) {
         if(state.is(ShipParts.LAMINATED_ARMOR.get())) return 3;
