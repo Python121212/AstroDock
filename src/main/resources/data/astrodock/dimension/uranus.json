@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:overworld",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "astrodock:uranus",
+    "biome_source": {"type": "minecraft:fixed", "biome": "astrodock:uranus"}
+  }
+}

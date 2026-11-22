@@ -7,23 +7,27 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-/** 火星（MARS）の低重力（約0.38G）とジャンプ力向上を適用する。 */
+/** 各惑星固有の重力（水星0.38G〜木星2.53G〜冥王星0.06G）とジャンプ力を適用する。 */
 @Mod.EventBusSubscriber(modid = "astrodock")
 public final class MarsPhysics {
     @SubscribeEvent
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         LivingEntity entity = event.getEntity();
-        if (entity.level().dimension() != AstroDock.MARS) return;
+        double g = PlanetTravel.gravityFor(entity.level().dimension());
+        if (g == 1.0) return;
 
-        // 落下中の重力を約38%に軽減し、落下ダメージも抑える
         var v = entity.getDeltaMovement();
-        if (!entity.onGround() && !entity.isInWater() && v.y < 0) {
-            entity.setDeltaMovement(v.x, v.y * 0.86, v.z);
-            entity.fallDistance *= 0.45f;
+        if (!entity.onGround() && !entity.isInWater()) {
+            if (g < 1.0 && v.y < 0) {
+                entity.setDeltaMovement(v.x, v.y * (0.78 + 0.22 * g), v.z);
+                entity.fallDistance *= (float) g;
+            } else if (g > 1.0 && v.y < 0) {
+                entity.setDeltaMovement(v.x, v.y * Math.min(1.12, 1.0 + (g - 1.0) * 0.06), v.z);
+            }
         }
-        // 火星の低重力によるジャンプ力向上
-        if (!entity.level().isClientSide && entity.tickCount % 20 == 0) {
-            entity.addEffect(new MobEffectInstance(MobEffects.JUMP, 35, 1, true, false, false));
+        if (!entity.level().isClientSide && entity.tickCount % 20 == 0 && g < 0.7) {
+            int amp = g < 0.2 ? 3 : 1;
+            entity.addEffect(new MobEffectInstance(MobEffects.JUMP, 35, amp, true, false, false));
         }
     }
 
