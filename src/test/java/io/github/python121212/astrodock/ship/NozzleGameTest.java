@@ -52,7 +52,7 @@ public class NozzleGameTest {
                 new Hull.Part(new BlockPos(0, 0, 1), iron, 4),
                 new Hull.Part(new BlockPos(0, 0, 2), iron, 4),
                 new Hull.Part(new BlockPos(0, 0, 3), iron, 4),
-                new Hull.Part(new BlockPos(1, 0, 2), iron, 4)
+                new Hull.Part(new BlockPos(1, 0, 2), iron, 4), new Hull.Part(new BlockPos(1, 0, 3), iron, 4)
         ));
         test.assertTrue(sleek.streamline < bare.streamline && sleek.ricochetChance > 0, "船体形状の流線型・跳弾判定が不正");
 
