@@ -21,7 +21,12 @@ public final class CoreScreen extends AbstractContainerScreen<CoreMenu> {
     private Button button(String name,int x,int width,int id){return addRenderableWidget(Button.builder(Component.translatable("core.astrodock."+name),b->action(id)).bounds(leftPos+x,topPos+116,width,20).build());}
     @Override protected void init(){super.init();if(menu.cabin())button("apply",10,204,2);else {button("scan",10,116,0);confirm=button("confirm",131,83,1);confirm.active=false;}}
     @Override protected void containerTick(){super.containerTick();if(confirm!=null)confirm.active=menu.value(0)==1;}
-    @Override protected void renderBg(GuiGraphics g,float partial,int mx,int my){g.fill(leftPos,topPos,leftPos+imageWidth,topPos+imageHeight,0xff23313f);g.fill(leftPos+2,topPos+2,leftPos+222,topPos+26,0xff395567);}
+    @Override protected void renderBg(GuiGraphics g,float partial,int mx,int my){
+        g.fill(leftPos-1,topPos-1,leftPos+imageWidth+1,topPos+imageHeight+1,0xff3a7ca5);
+        g.fill(leftPos,topPos,leftPos+imageWidth,topPos+imageHeight,0xff0f1722);
+        g.fill(leftPos+2,topPos+2,leftPos+imageWidth-2,topPos+26,0xff1b2c40);
+        g.fill(leftPos+2,topPos+26,leftPos+imageWidth-2,topPos+27,0xff4cc9f0);
+    }
     @Override protected void renderLabels(GuiGraphics g,int mx,int my){
         g.drawString(font,title,10,10,0xe9f4ff);int s=menu.value(0);
         if(s==1){g.drawString(font,Component.translatable("core.astrodock.count",menu.value(1),menu.value(2)),10,39,0x9df3c5);

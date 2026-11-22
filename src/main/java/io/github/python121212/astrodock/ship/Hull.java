@@ -24,7 +24,7 @@ public final class Hull {
     final List<Part> doors;
     public final boolean hasHelm, hasGravityController, watertight;
     public final int engines, floor, height;
-    public final double effectiveEngines, streamline, ricochetChance;
+    public final double effectiveEngines, streamline, ricochetChance, displacementCapacity;
     public Hull(List<Part> parts) {
         if (parts.isEmpty() || parts.size() > ShipWrench.MAX_PARTS) throw new IllegalArgumentException("船体サイズが不正です");
         this.parts = List.copyOf(parts);
@@ -106,12 +106,14 @@ public final class Hull {
         }
         this.ricochetChance = parts.isEmpty() ? 0 : Math.min(0.45, (double) sloped / parts.size() * 0.9);
 
-        this.watertight = isWatertight(parts, solid);
+        int sealedCells = countSealedCells(parts, solid);
+        this.watertight = sealedCells > 0;
+        this.displacementCapacity = sealedCells * 7.0;
         inertiaTensor=new Matrix3f((float)xx,(float)xy,(float)xz,(float)xy,(float)yy,(float)yz,(float)xz,(float)yz,(float)zz);
         inverseInertia=new Matrix3f(inertiaTensor).invert(); radiusX=rx; radiusZ=rz;
     }
-    private static boolean isWatertight(List<Part> parts, Set<BlockPos> solid) {
-        if (parts.isEmpty()) return false;
+    private static int countSealedCells(List<Part> parts, Set<BlockPos> solid) {
+        if (parts.isEmpty()) return 0;
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
         for (Part pt : parts) {
@@ -119,7 +121,7 @@ public final class Hull {
             minY = Math.min(minY, pt.pos.getY()); maxY = Math.max(maxY, pt.pos.getY());
             minZ = Math.min(minZ, pt.pos.getZ()); maxZ = Math.max(maxZ, pt.pos.getZ());
         }
-        if (maxX - minX < 2 || maxY - minY < 2 || maxZ - minZ < 2) return true;
+        if (maxX - minX < 2 || maxY - minY < 2 || maxZ - minZ < 2) return parts.size();
         Set<BlockPos> outside = new HashSet<>();
         Deque<BlockPos> q = new ArrayDeque<>();
         BlockPos start = new BlockPos(minX - 1, minY - 1, minZ - 1);
@@ -136,15 +138,19 @@ public final class Hull {
                 if (!solid.contains(nxt) && outside.add(nxt)) q.add(nxt);
             }
         }
+        int interior = 0;
         for (int x = minX + 1; x < maxX; x++) {
             for (int y = minY + 1; y < maxY; y++) {
                 for (int z = minZ + 1; z < maxZ; z++) {
                     BlockPos inner = new BlockPos(x, y, z);
-                    if (!solid.contains(inner) && outside.contains(inner)) return false;
+                    if (!solid.contains(inner)) {
+                        if (outside.contains(inner)) return 0;
+                        interior++;
+                    }
                 }
             }
         }
-        return true;
+        return parts.size() + interior;
     }
     static double partMass(BlockState state,float hardness) {
         if(state.is(ShipParts.LAMINATED_ARMOR.get())) return 3;

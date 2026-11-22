@@ -64,7 +64,10 @@ public class NozzleGameTest {
             sealedParts.add(new Hull.Part(pos, iron, 4));
             if (!(x == 1 && y == 2 && z == 1)) holedParts.add(new Hull.Part(pos, iron, 4));
         }
-        test.assertTrue(new Hull(sealedParts).watertight && !new Hull(holedParts).watertight, "船体の水密・浸水判定が不正");
+        var sealedHull = new Hull(sealedParts);
+        var holedHull = new Hull(holedParts);
+        test.assertTrue(sealedHull.watertight && !holedHull.watertight, "船体の水密・浸水判定が不正");
+        test.assertTrue(sealedHull.displacementCapacity > sealedHull.mass && holedHull.displacementCapacity == 0, "排水量計算が不正");
 
         com.mojang.logging.LogUtils.getLogger().info("AstroDock custom nozzle verified");
         test.succeed();
