@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -134,7 +133,7 @@ public final class ShipGuideScreen extends Screen {
         int boxX = (width - boxW) / 2;
         int boxY = height - 96;
         g.fill(boxX, boxY, boxX + boxW, boxY + 54, 0xAA101824);
-        g.renderOutline(boxX, boxY, boxW, 54, 0xFF3A7CA5);
+        g.fill(boxX, boxY, boxX + boxW, boxY + 1, 0xFF3A7CA5);
         g.drawWordWrap(font, Component.literal(step.detail()), boxX + 8, boxY + 6, boxW - 16, 0xE6EDF3);
         g.drawWordWrap(font, Component.literal(step.tip()).withStyle(ChatFormatting.GOLD), boxX + 8, boxY + 32, boxW - 16, 0xFFD166);
 
