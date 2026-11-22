@@ -21,7 +21,7 @@ public class DepartureGameTest {
         Vec3 launch=new Vec3(32000,Atmosphere.SPACE-50,-32000);
         Vec3 arrival=PlanetTravel.at(Level.OVERWORLD,launch.add(0,50,0)).position();
         test.assertTrue(!OrbitArrival.nearLaunch(Level.OVERWORLD,4903) && OrbitArrival.nearLaunch(Level.OVERWORLD,4904)
-                && OrbitArrival.nearLaunch(AstroDock.RUBRA,416) && !OrbitArrival.nearLaunch(AstroDock.ORBIT,4999),"先読み範囲が不正");
+                && OrbitArrival.nearLaunch(AstroDock.MARS,416) && !OrbitArrival.nearLaunch(AstroDock.ORBIT,4999),"先読み範囲が不正");
         int chunks=orbit.getChunkSource().getLoadedChunksCount();
         OrbitArrival.prefetch(earth,launch.add(0,-200,0),0);
         test.assertTrue(chunks==orbit.getChunkSource().getLoadedChunksCount(),"範囲外で同期ロードされた");

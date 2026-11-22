@@ -20,6 +20,6 @@ public final class OrbitArrivalScreen {
         // この短い区間だけ画面を省き、初回ログイン・死亡・他ディメンションの画面には触れない。
         var next=mc.getConnection().getLevel();
         var from=mc.player.level().dimension();
-        if(next!=null && next.dimension()==AstroDock.ORBIT && (from==Level.OVERWORLD || from==AstroDock.RUBRA)) event.setCanceled(true);
+        if(next!=null && next.dimension()==AstroDock.ORBIT && (from==Level.OVERWORLD || from==AstroDock.MARS)) event.setCanceled(true);
     }
 }

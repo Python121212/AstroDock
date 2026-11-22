@@ -11,7 +11,7 @@ import net.minecraftforge.client.event.RenderLevelStageEvent;
 
 /** 宇宙側にはエンティティも球殻ブロックも置かない。距離で精度を選ぶ静的メッシュ。 */
 enum OrbitalGlobe {
-    EARTH, RUBRA;
+    EARTH, MARS;
     private static final ResourceLocation EARTH_MAP=new ResourceLocation("astrodock","textures/environment/earth.png");
     private VertexBuffer near, far;
 

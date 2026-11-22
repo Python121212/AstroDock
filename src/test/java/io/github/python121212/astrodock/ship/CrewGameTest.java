@@ -74,7 +74,7 @@ public class CrewGameTest {
         for(var p:riders) p.setPlayerInput(0,0,false,false);
         test.succeedWhen(()->{
             Vec3 launch=new Vec3(surface.getX(),PlanetTravel.DEPARTURE_Y,surface.getZ());
-            test.assertTrue(OrbitArrival.ready(orbit,PlanetTravel.at(AstroDock.RUBRA,launch).position()),"宇宙側の準備中");
+            test.assertTrue(OrbitArrival.ready(orbit,PlanetTravel.at(AstroDock.MARS,launch).position()),"宇宙側の準備中");
             surface.setPos(launch.x,launch.y,launch.z);Ship back=surface.crossBoundary((ServerLevel)surface.level());
             test.assertTrue(back!=null && back.level()==orbit,"宇宙へ戻れない");
             for(int i=0;i<4;i++) test.assertTrue(riders.get(i).getVehicle()==back && back.deckFeet(riders.get(i)).equals(positions.get(i)),"帰還後の乗員位置が不一致");

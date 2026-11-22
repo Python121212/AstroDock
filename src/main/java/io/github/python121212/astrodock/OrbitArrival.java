@@ -17,7 +17,7 @@ public final class OrbitArrival {
 
     public static boolean nearLaunch(ResourceKey<Level> dimension, double y) {
         double limit = dimension == Level.OVERWORLD ? Atmosphere.SPACE : PlanetTravel.DEPARTURE_Y;
-        return (dimension == Level.OVERWORLD || dimension == AstroDock.RUBRA) && y >= limit - LEAD && y < limit;
+        return (dimension == Level.OVERWORLD || dimension == AstroDock.MARS) && y >= limit - LEAD && y < limit;
     }
 
     public static void prefetch(ServerLevel from, Vec3 p, int tick) {
