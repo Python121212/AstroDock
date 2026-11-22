@@ -111,7 +111,7 @@ public final class ShipGuide {
                     new Part(new BlockPos(1, 0, 0), heavy), new Part(new BlockPos(0, 1, 0), hatch)))
         ));
         ENTRIES.put(ShipParts.IRON_PLATE.get(), armorEntry);
-        ENTRIES.put(ShipParts.STRATAASTEEL_PLATE.get(), armorEntry);
+        ENTRIES.put(ShipParts.STRATASTEEL_PLATE.get(), armorEntry);
         ENTRIES.put(ShipParts.BLACKSHELL_PLATE.get(), armorEntry);
         ENTRIES.put(ShipParts.LAMINATED_ARMOR.get().asItem(), armorEntry);
         ENTRIES.put(ShipParts.BLACKSHELL_ARMOR.get().asItem(), armorEntry);
