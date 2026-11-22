@@ -37,9 +37,9 @@ public final class PlanetTravel {
             if (d2>ENTRY*ENTRY) return null;
             double dx=p.x-CENTER.x, dz=p.z-CENTER.z;
             double lon=Math.atan2(dx,dz), lat=Math.atan2(p.y-CENTER.y,Math.sqrt(dx*dx+dz*dz));
-            return new Passage(AstroDock.RUBRA,new Vec3(lon*MAP_SCALE,ARRIVAL_Y,-lat*MAP_SCALE),localFrame(lon,lat).conjugate());
+            return new Passage(AstroDock.MARS,new Vec3(lon*MAP_SCALE,ARRIVAL_Y,-lat*MAP_SCALE),localFrame(lon,lat).conjugate());
         }
-        if (dimension==AstroDock.RUBRA && p.y>=DEPARTURE_Y) {
+        if (dimension==AstroDock.MARS && p.y>=DEPARTURE_Y) {
             double lon=p.x/MAP_SCALE, lat=-p.z/MAP_SCALE, ring=EXIT*Math.cos(lat);
             return new Passage(AstroDock.ORBIT,CENTER.add(ring*Math.sin(lon),EXIT*Math.sin(lat),ring*Math.cos(lon)),localFrame(lon,lat));
         }
@@ -51,7 +51,7 @@ public final class PlanetTravel {
     }
     public static boolean approaching(ResourceKey<Level> dimension,Vec3 p) {
         if (dimension==AstroDock.ORBIT) return p.y<32 || CENTER.distanceToSqr(p)<(ENTRY+32)*(ENTRY+32);
-        return dimension==AstroDock.RUBRA ? p.y>DEPARTURE_Y-32 : dimension==Level.OVERWORLD && p.y>Atmosphere.SPACE-32;
+        return dimension==AstroDock.MARS ? p.y>DEPARTURE_Y-32 : dimension==Level.OVERWORLD && p.y>Atmosphere.SPACE-32;
     }
     private PlanetTravel() {}
 }

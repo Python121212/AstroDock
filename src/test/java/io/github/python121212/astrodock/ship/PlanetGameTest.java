@@ -17,7 +17,7 @@ import org.joml.Vector3f;
 public class PlanetGameTest {
     @GameTest(templateNamespace="minecraft", template="igloo/top")
     public static void descendAndLaunch(GameTestHelper test) {
-        var server=test.getLevel().getServer();var orbit=server.getLevel(AstroDock.ORBIT);var rubra=server.getLevel(AstroDock.RUBRA);
+        var server=test.getLevel().getServer();var orbit=server.getLevel(AstroDock.ORBIT);var rubra=server.getLevel(AstroDock.MARS);
         test.assertTrue(rubra!=null,"惑星ディメンション未登録");
         Ship ship=new Ship(ShipParts.SHIP.get(),orbit);
         Hull h=new Hull(List.of(new Hull.Part(BlockPos.ZERO,ShipParts.CORE.get().defaultBlockState(),4),

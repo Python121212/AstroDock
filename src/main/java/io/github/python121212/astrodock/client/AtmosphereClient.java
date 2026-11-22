@@ -54,7 +54,7 @@ public final class AtmosphereClient {
             layer.draw(b, e.getPoseStack().last().pose(), y);
             BufferUploader.drawWithShader(b.end());
             if (camera.getEntity().level().dimension()==AstroDock.ORBIT) {
-                OrbitalGlobe.EARTH.draw(e);OrbitalGlobe.RUBRA.draw(e);
+                OrbitalGlobe.EARTH.draw(e);OrbitalGlobe.MARS.draw(e);
             }
         } finally {
             RenderSystem.depthMask(true); RenderSystem.enableCull(); RenderSystem.disableBlend();
@@ -82,7 +82,7 @@ public final class AtmosphereClient {
     @SubscribeEvent public static void effects(TickEvent.ClientTickEvent e) {
         if (e.phase != TickEvent.Phase.END) return;
         var mc = Minecraft.getInstance(); var p = mc.player;
-        if (p == null || p.level().dimension()!=AstroDock.ORBIT) { OrbitalGlobe.EARTH.release();OrbitalGlobe.RUBRA.release(); }
+        if (p == null || p.level().dimension()!=AstroDock.ORBIT) { OrbitalGlobe.EARTH.release();OrbitalGlobe.MARS.release(); }
         if (p == null) { select(-1); wind = engine = null; return; }
         double y = altitude(p, p.getY());
         if (mc.isPaused() || y < 320) return;
@@ -108,7 +108,7 @@ public final class AtmosphereClient {
         if (p.level().dimension()==AstroDock.ORBIT) {
             int remaining=(int)Math.max(0, Math.ceil(p.position().distanceTo(PlanetTravel.CENTER)-PlanetTravel.ENTRY));
             e.getGuiGraphics().drawString(mc.font,Component.translatable("hud.astrodock.rubra_distance",remaining),8,20,0xffb98e);
-        } else if (p.level().dimension()==AstroDock.RUBRA) {
+        } else if (p.level().dimension()==AstroDock.MARS) {
             e.getGuiGraphics().drawString(mc.font,Component.translatable("hud.astrodock.rubra_surface"),8,20,0xffb98e);
         }
         if (p.getVehicle() instanceof io.github.python121212.astrodock.ship.Ship ship) {

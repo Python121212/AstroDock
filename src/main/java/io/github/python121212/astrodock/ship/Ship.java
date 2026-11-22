@@ -30,6 +30,7 @@ import net.minecraft.core.Direction;
 public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     private Hull hull;
     private final List<BlockPos> damageMarks = new ArrayList<>();
+    private int fireLevel;
     private final long[] nextShot=new long[ShipWeapon.values().length];
     int roomId; // 0 は 0.9 以前の船体
     private CabinRooms.Room room() {return roomId==0?null:CabinRooms.data((ServerLevel)level()).get(roomId);}
@@ -58,6 +59,9 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
     private double tx,ty,tz; private float targetYaw;
     public Ship(EntityType<? extends Ship> type,Level level) { super(type,level); blocksBuilding=true; }
     public Hull hull() { return hull; }
+    public int fireLevel() { return fireLevel; }
+    public void ignite(int amount) { fireLevel = Math.min(100, fireLevel + amount); }
+    public void extinguish() { fireLevel = 0; }
     void addDamageMark(Vec3 worldHit) {
         BlockPos local = BlockPos.containing(worldHit.subtract(position()));
         if (damageMarks.size() < 16) damageMarks.add(local);
@@ -386,6 +390,13 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
                 pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, yaw, roll?lateral:0, pilot!=null && pilot.jumping,engineOn()?supply:0);
         if (level().dimension() == io.github.python121212.astrodock.AstroDock.ORBIT && ((engineOn() || velocity.lengthSqr() > 1e-6) && altitude >= io.github.python121212.astrodock.Atmosphere.SPACE + 1000)) {
             velocity = velocity.add(io.github.python121212.astrodock.SolarActivity.solarWind(altitude, level().getGameTime(), hull.mass));
+        }
+        if (!level().isClientSide && fireLevel > 0) {
+            if (isInWater()) extinguish();
+            else if (tickCount % 40 == 0 && fireLevel < 100) fireLevel = Math.min(100, fireLevel + 2);
+        }
+        if (level().isClientSide && fireLevel > 0 && tickCount % 3 == 0) {
+            level().addParticle(net.minecraft.core.particles.ParticleTypes.FLAME, getX(), getY() + 0.8, getZ(), 0, 0.05, 0);
         }
         if (level().isClientSide && !damageMarks.isEmpty() && tickCount % 4 == 0) {
             for (BlockPos mark : damageMarks) {

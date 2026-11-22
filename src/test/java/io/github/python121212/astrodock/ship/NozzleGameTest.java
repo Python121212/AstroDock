@@ -75,6 +75,11 @@ public class NozzleGameTest {
         test.assertTrue(io.github.python121212.astrodock.SolarActivity.coronaHeat(6000, 100) > io.github.python121212.astrodock.SolarActivity.coronaHeat(6000, 600), "コロナ加熱が不正");
 
         test.assertTrue(level.getServer().getLevel(io.github.python121212.astrodock.AstroDock.MARS) != null, "火星ディメンションが登録されていない");
+        var testShip = new Ship(ShipParts.SHIP.get(), level);
+        testShip.ignite(20);
+        test.assertTrue(testShip.fireLevel() == 20, "艦内火災が発生していない");
+        testShip.extinguish();
+        test.assertTrue(testShip.fireLevel() == 0, "消火できていない");
         com.mojang.logging.LogUtils.getLogger().info("AstroDock custom nozzle verified");
         test.succeed();
     }
