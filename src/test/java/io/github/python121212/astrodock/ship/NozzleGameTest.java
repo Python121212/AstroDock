@@ -69,6 +69,11 @@ public class NozzleGameTest {
         test.assertTrue(sealedHull.watertight && !holedHull.watertight, "船体の水密・浸水判定が不正");
         test.assertTrue(sealedHull.displacementCapacity > sealedHull.mass && holedHull.displacementCapacity == 0, "排水量計算が不正");
 
+        var windCalm = io.github.python121212.astrodock.SolarActivity.solarWind(5000, 600, 100);
+        var windFlare = io.github.python121212.astrodock.SolarActivity.solarWind(5000, 100, 100);
+        test.assertTrue(windFlare.length() > windCalm.length(), "プロミネンス時の太陽風強化が不正");
+        test.assertTrue(io.github.python121212.astrodock.SolarActivity.coronaHeat(6000, 100) > io.github.python121212.astrodock.SolarActivity.coronaHeat(6000, 600), "コロナ加熱が不正");
+
         com.mojang.logging.LogUtils.getLogger().info("AstroDock custom nozzle verified");
         test.succeed();
     }
