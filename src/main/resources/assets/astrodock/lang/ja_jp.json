@@ -73,5 +73,6 @@
   "item.astrodock.blackshell_ingot": "黒殻インゴット",
   "item.astrodock.iron_plate": "鉄板",
   "item.astrodock.stratasteel_plate": "層鋼板",
-  "item.astrodock.blackshell_plate": "重装甲板"
+  "item.astrodock.blackshell_plate": "重装甲板",
+  "block.astrodock.nozzle_casing": "ノズル外殻"
 }

@@ -24,6 +24,7 @@ public final class Hull {
     final List<Part> doors;
     public final boolean hasHelm, hasGravityController;
     public final int engines, floor, height;
+    public final double effectiveEngines;
     public Hull(List<Part> parts) {
         if (parts.isEmpty() || parts.size() > ShipWrench.MAX_PARTS) throw new IllegalArgumentException("船体サイズが不正です");
         this.parts = List.copyOf(parts);
@@ -52,6 +53,31 @@ public final class Hull {
             if (p.state.is(ShipParts.ENGINE.get())) { engines++; ax+=dx; ay+=dy; az+=dz; }
         }
         hasGravityController=stabilizer; hasHelm=helm; this.engines=engines; armX=(float)ax; armY=(float)ay; armZ=(float)az;
+        int nozzleCount = 0;
+        if (engines > 0) {
+            Set<BlockPos> thrusterSet = new HashSet<>();
+            Set<BlockPos> casingSet = new HashSet<>();
+            for (Part pt : parts) {
+                if (pt.state.is(ShipParts.ENGINE.get())) thrusterSet.add(pt.pos);
+                else if (pt.state.is(ShipParts.NOZZLE_CASING.get())) casingSet.add(pt.pos);
+            }
+            if (!casingSet.isEmpty()) {
+                Deque<BlockPos> q = new ArrayDeque<>(thrusterSet);
+                Set<BlockPos> visited = new HashSet<>(thrusterSet);
+                int[][] dirs = {{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
+                while (!q.isEmpty()) {
+                    BlockPos cur = q.poll();
+                    for (int[] dir : dirs) {
+                        BlockPos nxt = cur.offset(dir[0], dir[1], dir[2]);
+                        if (casingSet.contains(nxt) && visited.add(nxt)) {
+                            nozzleCount++;
+                            q.add(nxt);
+                        }
+                    }
+                }
+            }
+        }
+        this.effectiveEngines = engines + Math.min(nozzleCount, engines * 4) * 0.125;
         inertiaTensor=new Matrix3f((float)xx,(float)xy,(float)xz,(float)xy,(float)yy,(float)yz,(float)xz,(float)yz,(float)zz);
         inverseInertia=new Matrix3f(inertiaTensor).invert(); radiusX=rx; radiusZ=rz;
     }

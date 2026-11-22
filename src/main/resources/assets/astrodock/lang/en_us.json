@@ -73,5 +73,6 @@
   "item.astrodock.blackshell_ingot": "Blackshell Ingot",
   "item.astrodock.iron_plate": "Iron Plate",
   "item.astrodock.stratasteel_plate": "Stratasteel Plate",
-  "item.astrodock.blackshell_plate": "Blackshell Plate"
+  "item.astrodock.blackshell_plate": "Blackshell Plate",
+  "block.astrodock.nozzle_casing": "Nozzle Casing"
 }

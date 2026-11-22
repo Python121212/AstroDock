@@ -92,6 +92,15 @@ public final class ShipGuide {
         ENTRIES.put(ShipParts.ENGINE.get().asItem(), flightEntry);
         ENTRIES.put(ShipParts.HELM.get().asItem(), flightEntry);
         ENTRIES.put(ShipParts.GRAVITY_CONTROLLER.get().asItem(), flightEntry);
+        var nozzle = ShipParts.NOZZLE_CASING.get().defaultBlockState();
+        ENTRIES.put(ShipParts.NOZZLE_CASING.get().asItem(), new Entry("自作ノズルの組み方", List.of(
+            new Step("1. スラスターにノズル外殻を接続",
+                "スラスターの後ろや周囲にノズル外殻をつなげて組むと、推力効率が上がります。",
+                "ヒント: スラスター1基につき最大4ブロック分のノズル外殻が推力ボーナスになります。",
+                List.of(new Part(new BlockPos(0, 0, 0), thruster), new Part(new BlockPos(0, 0, 1), nozzle),
+                    new Part(new BlockPos(1, 0, 1), nozzle), new Part(new BlockPos(-1, 0, 1), nozzle),
+                    new Part(new BlockPos(0, 1, 1), nozzle)))
+        )));
 
         var weaponEntry = new Entry("艦載兵装の搭載", List.of(
             new Step("1. 船体の外側に配置",
