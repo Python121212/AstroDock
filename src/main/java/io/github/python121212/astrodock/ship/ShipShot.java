@@ -71,6 +71,15 @@ public final class ShipShot extends ThrowableItemProjectile {
                     return;
                 }
                 s.setDeltaMovement(s.getDeltaMovement().scale(.5));
+                var w = weapon();
+                if (w == ShipWeapon.TORPEDO || w == ShipWeapon.MISSILE) {
+                    s.breachAt(hit.getLocation(), w == ShipWeapon.TORPEDO ? 2 : 1);
+                    l.sendParticles(net.minecraft.core.particles.ParticleTypes.EXPLOSION, hit.getLocation().x, hit.getLocation().y, hit.getLocation().z, 2, 0.4, 0.4, 0.4, 0.05);
+                    l.playSound(null, s.blockPosition(), net.minecraft.sounds.SoundEvents.GENERIC_EXPLODE, net.minecraft.sounds.SoundSource.NEUTRAL, 1.0f, 0.9f);
+                } else {
+                    s.addDamageMark(hit.getLocation());
+                    l.sendParticles(net.minecraft.core.particles.ParticleTypes.SMOKE, hit.getLocation().x, hit.getLocation().y, hit.getLocation().z, 8, 0.3, 0.3, 0.3, 0.02);
+                }
             }
             else e.hurt(damageSources().thrown(this,getOwner()),weapon().damage);
         }

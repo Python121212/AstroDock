@@ -74,6 +74,7 @@ public class NozzleGameTest {
         test.assertTrue(windFlare.length() > windCalm.length(), "プロミネンス時の太陽風強化が不正");
         test.assertTrue(io.github.python121212.astrodock.SolarActivity.coronaHeat(6000, 100) > io.github.python121212.astrodock.SolarActivity.coronaHeat(6000, 600), "コロナ加熱が不正");
 
+        test.assertTrue(level.getServer().getLevel(io.github.python121212.astrodock.AstroDock.MARS) != null, "火星ディメンションが登録されていない");
         com.mojang.logging.LogUtils.getLogger().info("AstroDock custom nozzle verified");
         test.succeed();
     }
