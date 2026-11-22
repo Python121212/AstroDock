@@ -45,6 +45,11 @@ public final class ShipParts {
     public static final RegistryObject<Block> AIRLOCK = part("airlock_door", p -> new DoorBlock(p.noOcclusion(), BlockSetType.STONE) {});
     public static final RegistryObject<Block> HATCH = part("exterior_hatch", p -> new TrapDoorBlock(p.noOcclusion(), BlockSetType.STONE) {});
     public static final RegistryObject<Block> CANNON = part("main_cannon", MainCannonBlock::new), MISSILES = part("missile_launcher", Block::new), TORPEDOES = part("torpedo_tube", Block::new);
+    public static final RegistryObject<Block> MINING_LASER = part("mining_laser", p -> new Block(p.strength(4, 16).sound(SoundType.METAL)));
+    public static final RegistryObject<Block> SALVAGE_BEAM = part("salvage_beam", p -> new Block(p.strength(4, 16).sound(SoundType.METAL)));
+    public static final RegistryObject<Block> POINT_DEFENSE_LASER = part("point_defense_laser", p -> new Block(p.strength(4, 16).sound(SoundType.METAL)));
+    public static final RegistryObject<Item> LASER_CUTTER = ITEMS.register("laser_cutter", () -> new LaserCutterItem(new Item.Properties()));
+    public static final RegistryObject<Item> WELDING_TORCH = ITEMS.register("welding_torch", () -> new WeldingTorchItem(new Item.Properties()));
     public static final RegistryObject<BlockEntityType<CannonMount>> CANNON_MOUNT=TILES.register("main_cannon",()->
             BlockEntityType.Builder.of(CannonMount::new,CANNON.get()).build(null));
     public static final RegistryObject<EntityType<ShipShot>> SHELL = shot("cannon_shot"), MISSILE = shot("missile"), TORPEDO = shot("torpedo");
@@ -76,6 +81,11 @@ public final class ShipParts {
                 output.accept(BLACKSHELL_PLATE.get());
                 output.accept(NOZZLE_CASING.get());
                 output.accept(NOZZLE_CASING_SLOPE.get());
+                output.accept(MINING_LASER.get());
+                output.accept(SALVAGE_BEAM.get());
+                output.accept(POINT_DEFENSE_LASER.get());
+                output.accept(LASER_CUTTER.get());
+                output.accept(WELDING_TORCH.get());
             }).build());
 
     private static RegistryObject<Block> part(String id, Function<BlockBehaviour.Properties,Block> factory) {
