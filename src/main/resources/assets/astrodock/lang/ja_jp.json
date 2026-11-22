@@ -82,5 +82,9 @@
   "block.astrodock.salvage_beam": "サルベージビーム",
   "block.astrodock.point_defense_laser": "迎撃レーザー",
   "item.astrodock.laser_cutter": "レーザーカッター",
-  "item.astrodock.welding_torch": "溶接トーチ"
+  "item.astrodock.welding_torch": "溶接トーチ",
+  "block.astrodock.life_support": "生命維持・酸素発生装置",
+  "block.astrodock.warp_drive": "ワープドライブ",
+  "block.astrodock.shield_generator": "エネルギーシールド発生機",
+  "block.astrodock.planet_scanner": "惑星スキャナー"
 }

@@ -48,6 +48,10 @@ public final class ShipParts {
     public static final RegistryObject<Block> MINING_LASER = part("mining_laser", p -> new Block(p.strength(4, 16).sound(SoundType.METAL)));
     public static final RegistryObject<Block> SALVAGE_BEAM = part("salvage_beam", p -> new Block(p.strength(4, 16).sound(SoundType.METAL)));
     public static final RegistryObject<Block> POINT_DEFENSE_LASER = part("point_defense_laser", p -> new Block(p.strength(4, 16).sound(SoundType.METAL)));
+    public static final RegistryObject<Block> LIFE_SUPPORT = part("life_support", p -> new Block(p.strength(4, 16).sound(SoundType.METAL)));
+    public static final RegistryObject<Block> WARP_DRIVE = part("warp_drive", p -> new Block(p.strength(6, 24).sound(SoundType.METAL)));
+    public static final RegistryObject<Block> SHIELD_GENERATOR = part("shield_generator", p -> new Block(p.strength(5, 20).sound(SoundType.METAL)));
+    public static final RegistryObject<Block> PLANET_SCANNER = part("planet_scanner", p -> new PlanetScannerBlock(p.strength(4, 16).sound(SoundType.METAL)));
     public static final RegistryObject<Item> LASER_CUTTER = ITEMS.register("laser_cutter", () -> new LaserCutterItem(new Item.Properties()));
     public static final RegistryObject<Item> WELDING_TORCH = ITEMS.register("welding_torch", () -> new WeldingTorchItem(new Item.Properties()));
     public static final RegistryObject<BlockEntityType<CannonMount>> CANNON_MOUNT=TILES.register("main_cannon",()->
@@ -84,6 +88,10 @@ public final class ShipParts {
                 output.accept(MINING_LASER.get());
                 output.accept(SALVAGE_BEAM.get());
                 output.accept(POINT_DEFENSE_LASER.get());
+                output.accept(LIFE_SUPPORT.get());
+                output.accept(WARP_DRIVE.get());
+                output.accept(SHIELD_GENERATOR.get());
+                output.accept(PLANET_SCANNER.get());
                 output.accept(LASER_CUTTER.get());
                 output.accept(WELDING_TORCH.get());
             }).build());

@@ -391,6 +391,17 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
         if (level().dimension() == io.github.python121212.astrodock.AstroDock.ORBIT && ((engineOn() || velocity.lengthSqr() > 1e-6) && altitude >= io.github.python121212.astrodock.Atmosphere.SPACE + 1000)) {
             velocity = velocity.add(io.github.python121212.astrodock.SolarActivity.solarWind(altitude, level().getGameTime(), hull.mass));
         }
+        if (!level().isClientSide && hull.lifeSupports > 0 && hull.watertight && tickCount % 10 == 0) {
+            for (var passenger : getPassengers()) {
+                if (passenger instanceof net.minecraft.world.entity.LivingEntity living) {
+                    living.setAirSupply(living.getMaxAirSupply());
+                }
+            }
+        }
+        if (!level().isClientSide && hull.shieldGenerators > 0 && tickCount % 20 == 0) {
+            var incoming = level().getEntitiesOfClass(ShipShot.class, getBoundingBox().inflate(6.0 + hull.shieldGenerators * 2.0));
+            if (!incoming.isEmpty()) incoming.get(0).discard();
+        }
         if (!level().isClientSide && hull.pointDefenseLasers > 0 && tickCount % 10 == 0) {
             var threats = level().getEntitiesOfClass(ShipShot.class, getBoundingBox().inflate(24.0 + hull.pointDefenseLasers * 4.0));
             for (ShipShot shot : threats) {
