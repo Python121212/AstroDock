@@ -16,6 +16,7 @@ import net.minecraftforge.fml.common.Mod;
 public final class ShipRenderer extends EntityRenderer<Ship> {
     ShipRenderer(EntityRendererProvider.Context ctx) { super(ctx); }
     @SubscribeEvent public static void register(EntityRenderersEvent.RegisterRenderers e) {e.registerEntityRenderer(ShipParts.SHIP.get(),ShipRenderer::new);
+        e.registerBlockEntityRenderer(ShipParts.CANNON_MOUNT.get(),CannonMountRenderer::new);
         for(var shot:java.util.List.of(ShipParts.SHELL,ShipParts.MISSILE,ShipParts.TORPEDO))
             e.registerEntityRenderer(shot.get(),ctx->new ThrownItemRenderer<>(ctx,1.3f,true));}
     @Override public ResourceLocation getTextureLocation(Ship ship) { return TextureAtlas.LOCATION_BLOCKS; }

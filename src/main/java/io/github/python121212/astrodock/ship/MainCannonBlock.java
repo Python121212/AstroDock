@@ -23,15 +23,16 @@ final class MainCannonBlock extends HorizontalDirectionalBlock implements Entity
     @Override public BlockState rotate(BlockState s,Rotation r){return s.setValue(FACING,r.rotate(s.getValue(FACING)));}
     @Override public BlockState mirror(BlockState s,Mirror m){return s.rotate(m.getRotation(s.getValue(FACING)));}
     @Override public VoxelShape getShape(BlockState s,BlockGetter level,BlockPos p,CollisionContext ctx){return box(0,0,0,16,10,16);}
+    @Override public RenderShape getRenderShape(BlockState s){return RenderShape.ENTITYBLOCK_ANIMATED;}
     @Override public BlockEntity newBlockEntity(BlockPos p,BlockState s){return new CannonMount(p,s);}
     @Override public InteractionResult use(BlockState s,Level l,BlockPos pos,Player p,InteractionHand hand,BlockHitResult hit){
-        if(!l.isClientSide){
-            if(p.isShiftKeyDown() && l.getBlockEntity(pos) instanceof CannonMount mount){
+        if(!l.isClientSide && l.getBlockEntity(pos) instanceof CannonMount mount){
+            if(p.isShiftKeyDown()){
                 p.displayClientMessage(Component.translatable("hint.astrodock.cannon_log",mount.shots(),REQUIRED_OUTPUT),true);
             }else{
-                BlockState rotated=s.setValue(FACING,s.getValue(FACING).getClockWise());
-                l.setBlock(pos,rotated,3);
-                p.displayClientMessage(Component.literal("主砲方位: "+rotated.getValue(FACING).getName()),true);
+                float targetYaw=((p.getYRot()+180.0f)%360.0f+360.0f)%360.0f;
+                mount.setYaw(targetYaw);
+                p.displayClientMessage(Component.literal(String.format("主砲方位: %.0f°",targetYaw)),true);
             }
         }
         return InteractionResult.sidedSuccess(l.isClientSide);
