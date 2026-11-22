@@ -14,6 +14,7 @@ public final class CannonTurretBlockEntity extends BlockEntity {
     private float yaw;
     private float pitch;
     private int powderCharge;
+    private boolean energyMode;
 
     public CannonTurretBlockEntity(BlockPos pos, BlockState state) {
         super(ShipParts.CANNON_TURRET_BE.get(), pos, state);
@@ -22,6 +23,14 @@ public final class CannonTurretBlockEntity extends BlockEntity {
     public float yaw() { return yaw; }
     public float pitch() { return pitch; }
     public int powderCharge() { return powderCharge; }
+    public boolean isEnergyMode() { return energyMode; }
+    public void toggleMode() {
+        energyMode = !energyMode;
+        setChanged();
+        if (level != null && !level.isClientSide) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
+    }
 
     public void setAim(float yaw, float pitch) {
         this.yaw = ((yaw % 360.0f) + 360.0f) % 360.0f;
@@ -64,6 +73,7 @@ public final class CannonTurretBlockEntity extends BlockEntity {
         tag.putFloat("Yaw", yaw);
         tag.putFloat("Pitch", pitch);
         tag.putInt("PowderCharge", powderCharge);
+        tag.putBoolean("EnergyMode", energyMode);
     }
 
     @Override
@@ -72,6 +82,7 @@ public final class CannonTurretBlockEntity extends BlockEntity {
         yaw = tag.getFloat("Yaw");
         pitch = tag.getFloat("Pitch");
         powderCharge = tag.getInt("PowderCharge");
+        energyMode = tag.getBoolean("EnergyMode");
     }
 
     @Override
