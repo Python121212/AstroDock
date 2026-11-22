@@ -126,7 +126,7 @@ public final class ShipGuideScreen extends Screen {
 
         // 3Dブロック構造の描画（ドラッグで回転、未操作時はゆっくり自動回転）
         if (!dragging) yaw += partialTick * 0.45f;
-        renderStructure(g, step);
+        // renderStructure(g, step);
 
         // 解説とヒントパネル
         int boxW = Math.min(420, width - 32);
