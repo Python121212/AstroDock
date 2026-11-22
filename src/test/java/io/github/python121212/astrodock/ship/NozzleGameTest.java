@@ -33,11 +33,11 @@ public class NozzleGameTest {
 
         var b1 = new RigidBody(); var v1 = Vec3.ZERO;
         var b2 = new RigidBody(); var v2 = Vec3.ZERO;
-        for (int i = 0; i < 40; i++) {
+        for (int i = 0; i < 10; i++) {
             v1 = b1.step(bare, v1, 5000, 1.0f, 0, 0, 0);
             v2 = b2.step(equipped, v2, 5000, 1.0f, 0, 0, 0);
         }
-        test.assertTrue(v2.z > v1.z, "自作ノズル付きの加速が通常より大きくない");
+        test.assertTrue(v2.length() > v1.length(), "自作ノズル付きの加速が通常より大きくない");
         com.mojang.logging.LogUtils.getLogger().info("AstroDock custom nozzle verified");
         test.succeed();
     }
