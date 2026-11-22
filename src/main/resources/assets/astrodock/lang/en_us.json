@@ -86,5 +86,8 @@
   "block.astrodock.life_support": "Life Support Unit",
   "block.astrodock.warp_drive": "Warp Drive",
   "block.astrodock.shield_generator": "Energy Shield Generator",
-  "block.astrodock.planet_scanner": "Planet Scanner"
+  "block.astrodock.planet_scanner": "Planet Scanner",
+  "block.astrodock.cannon_barrel": "Cannon Barrel",
+  "block.astrodock.cannon_turret": "Cannon Turret",
+  "block.astrodock.cannon_breech": "Cannon Breech"
 }

@@ -86,5 +86,8 @@
   "block.astrodock.life_support": "生命維持・酸素発生装置",
   "block.astrodock.warp_drive": "ワープドライブ",
   "block.astrodock.shield_generator": "エネルギーシールド発生機",
-  "block.astrodock.planet_scanner": "惑星スキャナー"
+  "block.astrodock.planet_scanner": "惑星スキャナー",
+  "block.astrodock.cannon_barrel": "砲身ブロック",
+  "block.astrodock.cannon_turret": "砲台ブロック",
+  "block.astrodock.cannon_breech": "薬室ブロック"
 }

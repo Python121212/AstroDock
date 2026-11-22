@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "astrodock:block/cannon_barrel",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "astrodock:block/cannon_barrel"
+    },
+    "axis=z": {
+      "model": "astrodock:block/cannon_barrel",
+      "x": 90
+    }
+  }
+}
