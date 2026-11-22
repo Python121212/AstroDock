@@ -365,7 +365,7 @@ public final class Ship extends Entity implements IEntityAdditionalSpawnData {
             yaw=body.helmYaw(hull,getYRot(),pilot.getYRot());
         Vec3 velocity=body.step(hull,getDeltaMovement(),altitude,pilot==null?0:pilot.zza,
                 pilot==null?0:pilot.getXRot()*Mth.DEG_TO_RAD, yaw, roll?lateral:0, pilot!=null && pilot.jumping,engineOn()?supply:0);
-        if (level().dimension() == io.github.python121212.astrodock.AstroDock.ORBIT && (engineOn() || velocity.lengthSqr() > 1e-6 && altitude >= io.github.python121212.astrodock.Atmosphere.SPACE)) {
+        if (level().dimension() == io.github.python121212.astrodock.AstroDock.ORBIT && ((engineOn() || velocity.lengthSqr() > 1e-6) && altitude >= io.github.python121212.astrodock.Atmosphere.SPACE)) {
             velocity = velocity.add(io.github.python121212.astrodock.SolarActivity.solarWind(altitude, level().getGameTime(), hull.mass));
         }
         if (isInWater()) {
